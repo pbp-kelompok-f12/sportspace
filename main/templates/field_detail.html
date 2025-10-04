@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<p><a href="{% url 'main:show_main' %}"><button>← Back to Field List</button></a></p>
+
+<h1>{{ field.name }}</h1>
+
+<p>
+  <b>Jenis:</b> {{ field.get_sport_type_display }} <br>
+  <b>Lokasi:</b> {{ field.location }} <br>
+  <b>Harga per jam:</b> Rp {{ field.price_per_hour }} <br>
+  {% if field.is_available %}
+    <span style="color:green;"><b>Tersedia</b></span>
+  {% else %}
+    <span style="color:red;"><b>Tidak Tersedia</b></span>
+  {% endif %}
+</p>
+
+{% if field.user %}
+    <p>Owner: {{ field.user.username }}</p>
+{% else %}
+    <p>Owner: Anonymous</p>
+{% endif %}
+
+{% endblock content %}
