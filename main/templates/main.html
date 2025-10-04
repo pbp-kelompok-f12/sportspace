@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'navbar.html' %}
+
+<h1>SportSpace</h1>
+
+<h1>Daftar Lapangan Olahraga</h1>
+
+<a href="{% url 'main:create_field' %}">
+  <button>+ Tambah Lapangan</button>
+</a>
+
+<a href="{% url 'main:logout' %}">
+  <button>Logout</button>
+</a>
+
+<h2>Welcome, {{ username }}!</h2>
+<h5>Last Login: {{ last_login }}</h5>
+
+<hr>
+
+<a href="?filter=all">
+    <button type="button">All Fields</button>
+</a>
+<a href="?filter=my">
+    <button type="button">My Fields</button>
+</a> 
+
+{% if not field_list %}
+  <p>Belum ada data lapangan tersedia.</p>
+{% else %}
+  {% for field in field_list %}
+    <div>
+      <h2>
+        <a href="{% url 'main:show_field' field.id %}">{{ field.name }}</a>
+      </h2>
+
+      <p>
+        <b>Jenis:</b> {{ field.get_sport_type_display }} |
+        <b>Lokasi:</b> {{ field.location }} |
+        <b>Harga per jam:</b> Rp {{ field.price_per_hour }}
+      </p>
+
+      {% if field.is_available %}
+        <p style="color: green;"><b>Tersedia</b></p>
+      {% else %}
+        <p style="color: red;"><b>Tidak Tersedia</b></p>
+      {% endif %}
+
+        {% if user.is_authenticated and field.vendor.owner == user %}
+        <a href="{% url 'main:edit_field' field.pk %}">
+            <button>
+                Edit
+            </button>
+        </a>
+        <a href="{% url 'main:delete_news' news.pk %}">
+        <button>
+            Delete
+        </button>
+        {% endif %}
+
+    </div>
+    <hr>
+  {% endfor %}
+{% endif %}
+
+{% endblock content %}
