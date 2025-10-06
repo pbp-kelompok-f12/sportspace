@@ -37,7 +37,6 @@ def create_field(request):
     if request.method == 'POST' and form.is_valid():
         field_entry = form.save(commit=False)
 
-        # Jika model Field punya atribut ForeignKey ke User (mis. user = FK(User))
         if hasattr(field_entry, 'user'):
             field_entry.user = request.user
 
@@ -46,6 +45,8 @@ def create_field(request):
 
     context = {'form': form}
     return render(request, "create_field.html", context)
+
+
 
 @login_required(login_url='/login')
 def show_field(request, id):
