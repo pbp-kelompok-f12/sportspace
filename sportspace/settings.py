@@ -41,8 +41,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://sean-marcello-sportspace.pbp.cs.ui.ac.id",
 ]
 
-
-
 # Application definition
 
 INSTALLED_APPS = [
