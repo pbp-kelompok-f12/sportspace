@@ -1,16 +1,21 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-{% block meta %}
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-{% endblock meta %}
-<script src="https://cdn.tailwindcss.com">
-</script>
-</head>
+    {% block meta %}{% endblock meta %}
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
 
-<body>
-    {% block content %} {% endblock content %}
-</body>
+  <body class="min-h-screen bg-gradient-to-b from-[#002B4F] to-[#0069C0] text-white">
+    {% block content %}
+    {% endblock content %}
+
+    {% include 'toast.html' %}
+    {% include 'modal.html' %}
+
+  </body>
 </html>
+
+<!-- base backgroundnya gradien biru tua ke biru muda -->

@@ -1,67 +1,74 @@
-{% extends 'base.html' %}
-{% block content %}
-{% include 'navbar.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SportSpace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans">
 
-<h1>SportSpace</h1>
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg" 
+                     alt="Logo" class="w-8 h-8 rounded">
+                <span class="font-semibold text-lg text-gray-800">Sport Space</span>
+            </div>
 
-<h1>Daftar Lapangan Olahraga</h1>
+            <div class="flex space-x-6 items-center">
+                <a href="#" class="text-orange-500 font-medium hover:text-orange-600 border-b-2 border-orange-500 pb-1">Home</a>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-1 rounded-md">Log in</button>
+            </div>
+        </div>
+    </nav>
 
-<a href="{% url 'main:create_field' %}">
-  <button>+ Tambah Lapangan</button>
-</a>
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-b from-blue-700 to-blue-800 text-white py-20">
+        <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between">
+            
+            <!-- Left (Logo) -->
+            <div class="flex-shrink-0 mb-10 md:mb-0">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg"
+                     alt="SportSpace Logo" class="w-56">
+            </div>
 
-<a href="{% url 'main:logout' %}">
-  <button>Logout</button>
-</a>
+            <!-- Right (Text + Button) -->
+            <div class="max-w-md">
+                <h2 class="text-4xl font-extrabold mb-4">We are SportSpace</h2>
+                <p class="text-lg mb-8 text-gray-200">
+                    Welcome to the all in one web to rent <span class="font-semibold">Padel Courts</span>
+                </p>
+                <button class="bg-lime-400 hover:bg-lime-500 text-gray-800 font-semibold px-8 py-3 rounded-lg transition-all">
+                    Join Today
+                </button>
+            </div>
+        </div>
+    </section>
 
-<h2>Welcome, {{ username }}!</h2>
-<h5>Last Login: {{ last_login }}</h5>
+    <!-- Footer -->
+    <footer class="bg-gradient-to-r from-lime-600 to-lime-400 py-6">
+        <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-white">
+            
+            <!-- Left -->
+            <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg" 
+                     alt="Logo" class="w-8 h-8">
+                <div class="flex space-x-3 items-center">
+                    <span class="font-semibold text-white">Sport Space</span>
+                    <span class="text-white">|</span>
+                    <a href="#" class="hover:underline">Home</a>
+                </div>
+            </div>
 
-<hr>
+            <!-- Right -->
+            <div class="text-sm text-right">
+                <p class="font-medium">Contact Us:</p>
+                <p class="text-white">sportspace@gmail.com</p>
+            </div>
+        </div>
+    </footer>
 
-<a href="?filter=all">
-    <button type="button">All Fields</button>
-</a>
-<a href="?filter=my">
-    <button type="button">My Fields</button>
-</a> 
-
-{% if not field_list %}
-  <p>Belum ada data lapangan tersedia.</p>
-{% else %}
-  {% for field in field_list %}
-    <div>
-      <h2>
-        <a href="{% url 'main:show_field' field.id %}">{{ field.name }}</a>
-      </h2>
-
-      <p>
-        <b>Jenis:</b> {{ field.get_sport_type_display }} |
-        <b>Lokasi:</b> {{ field.location }} |
-        <b>Harga per jam:</b> Rp {{ field.price_per_hour }}
-      </p>
-
-      {% if field.is_available %}
-        <p style="color: green;"><b>Tersedia</b></p>
-      {% else %}
-        <p style="color: red;"><b>Tidak Tersedia</b></p>
-      {% endif %}
-
-        {% if user.is_authenticated and field.vendor.owner == user %}
-        <a href="{% url 'main:edit_field' field.pk %}">
-            <button>
-                Edit
-            </button>
-        </a>
-        <a href="{% url 'main:delete_news' news.pk %}">
-        <button>
-            Delete
-        </button>
-        {% endif %}
-
-    </div>
-    <hr>
-  {% endfor %}
-{% endif %}
-
-{% endblock content %}
+</body>
+</html>
