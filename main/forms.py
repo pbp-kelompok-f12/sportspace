@@ -4,8 +4,10 @@ from .models import Venue, Booking, Venue
 class VenueForm(ModelForm):
     class Meta:
         model = Venue
-        fields = ["name", "location", "price_per_hour", "is_available"]
-
+        fields = ['name', 'contact', 'address',
+                  'description', 'facilities', 'photo_url',
+                  'price_per_hour', 'is_available']
+        
 class BookingForm(ModelForm):
     class Meta:
         model = Booking
