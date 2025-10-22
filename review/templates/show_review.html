@@ -1,0 +1,14 @@
+<h2>Reviews for {{ field.name }}</h2>
+
+<ul>
+  {% for review in reviews %}
+    <li>
+      <b>{{ review.user.username }}</b> ({{ review.rating }}/5):
+      {{ review.comment }} <i>{{ review.created_at }}</i>
+    </li>
+  {% empty %}
+    <li>No reviews yet.</li>
+  {% endfor %}
+</ul>
+
+<a href="{% url 'review:add_review' field.id %}">Add a Review</a>
