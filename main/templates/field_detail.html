@@ -15,6 +15,25 @@
   {% endif %}
 </p>
 
+<hr>
+<h3>Reviews</h3>
+<ul>
+  {% for review in field.reviews.all %}
+    <li>
+      <b>{{ review.user.username }}</b> ({{ review.rating }}/5):
+      {{ review.comment }} <i>{{ review.created_at }}</i>
+    </li>
+  {% empty %}
+    <li>Belum ada ulasan.</li>
+  {% endfor %}
+</ul>
+
+<p>
+  <a href="{% url 'review:add_review' field.id %}">
+    <button>Tambah Review</button>
+  </a>
+</p>
+
 {% if field.user %}
     <p>Owner: {{ field.user.username }}</p>
 {% else %}

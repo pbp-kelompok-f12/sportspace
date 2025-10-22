@@ -14,6 +14,9 @@ from django.contrib.auth import authenticate, login, logout
 
 from django.contrib.auth.decorators import login_required
 
+from review.forms import ReviewForm
+from review.models import Review
+
 @login_required(login_url='/login')
 def show_main(request):
     filter_type = request.GET.get("filter", "all")  # default 'all'
@@ -46,14 +49,26 @@ def create_field(request):
     context = {'form': form}
     return render(request, "create_field.html", context)
 
-
-
 @login_required(login_url='/login')
 def show_field(request, id):
     field = get_object_or_404(Field, pk=id)
+    reviews = field.reviews.all().order_by("-created_at")
+
+    if request.method == "POST":
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.user = request.user
+            review.field = field
+            review.save()
+            return redirect("main:show_field", id=field.id)
+    else:
+        form = ReviewForm()
 
     context = {
-        'field': field
+        'field': field,
+        'reviews': reviews,
+        'form': form,
     }
 
     return render(request, "field_detail.html", context)
