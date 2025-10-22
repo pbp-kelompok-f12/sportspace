@@ -51,9 +51,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
-    'review'
     'accounts',
-    'review'
+    'review',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -79,6 +79,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.static',
             ],
         },
     },
@@ -155,6 +156,11 @@ if DEBUG:
     ]
 else:
     STATIC_ROOT = BASE_DIR / 'static' # merujuk ke /static root project pada mode production
+
+# Auth redirects
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/home/'
+LOGOUT_REDIRECT_URL = '/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

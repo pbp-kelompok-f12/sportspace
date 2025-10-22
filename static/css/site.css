@@ -1,0 +1,4 @@
+/* Shared tweaks to style form widgets when using widget_tweaks */
+.rounded-2xl { border-radius: 1rem; }
+.rounded-md { border-radius: .375rem; }
+

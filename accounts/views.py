@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout
+from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -15,18 +15,11 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            # Redirect sesuai role
-            role = user.profile.role
-            if role == 'admin':
-                return redirect('accounts:admin_dashboard')
-            elif role == 'venue_owner':
-                return redirect('accounts:venue_dashboard')
-            else:
-                return redirect('accounts:customer_dashboard')
+            auth_login(request, user)
+            return redirect('/home/')
     else:
         form = SignUpForm()
-    return render(request, 'accounts/signup.html', {'form': form})
+    return render(request, 'signup.html', {'form': form})
 
 
 # LOGIN
@@ -35,23 +28,16 @@ def login(request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            login(request, user)
-            role = user.profile.role
-
-            if role == 'admin':
-                return redirect('accounts:admin_dashboard')
-            elif role == 'venue_owner':
-                return redirect('accounts:venue_dashboard')
-            else:
-                return redirect('accounts:customer_dashboard')
+            auth_login(request, user)
+            return redirect('/home/')
     else:
         form = AuthenticationForm()
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, 'login.html', {'form': form})
 
 
 # LOGOUT
 def logout(request):
-    logout(request)
+    auth_logout(request)
     return redirect('accounts:login')
 
 # DASHBOARD PER ROLE
