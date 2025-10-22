@@ -10,7 +10,7 @@ from .forms import SignUpForm, ProfileForm
 from .models import Profile
 
 # SIGN UP
-def signup_view(request):
+def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -30,7 +30,7 @@ def signup_view(request):
 
 
 # LOGIN
-def login_view(request):
+def login(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -50,10 +50,9 @@ def login_view(request):
 
 
 # LOGOUT
-def logout_view(request):
+def logout(request):
     logout(request)
     return redirect('accounts:login')
-
 
 # DASHBOARD PER ROLE
 @login_required
@@ -68,12 +67,10 @@ def venue_dashboard(request):
 def customer_dashboard(request):
     return render(request, 'accounts/customer_dashboard.html')
 
-
 # PROFILE
 @login_required
 def profile_view(request):
     return render(request, 'accounts/profile.html', {'profile': request.user.profile})
-
 
 # EDIT PROFILE
 @login_required
@@ -88,7 +85,6 @@ def edit_profile(request):
         form = ProfileForm(instance=profile)
     return render(request, 'accounts/edit_profile.html', {'form': form})
 
-
 # JSON PROFILE (untuk AJAX)
 @login_required
 def profile_json(request):
@@ -101,4 +97,3 @@ def profile_json(request):
         'address': profile.address,
     }
     return JsonResponse(data)
-
