@@ -1,11 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
-from main.models import Field
+from main.models import Venue
 
 # Create your models here.
 class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    field = models.ForeignKey(Field, on_delete=models.CASCADE, related_name="reviews")
+    venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="reviews")
     rating = models.PositiveIntegerField()
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
