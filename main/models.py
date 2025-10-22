@@ -14,19 +14,11 @@ class Vendor(models.Model):
     def __str__(self):
         return self.name
     
-class Field(models.Model):
+class Venue(models.Model):
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, null=True)
-
-    SPORT_CHOICES = [
-        ('futsal', 'Futsal'),
-        ('badminton', 'Badminton'),
-        ('basket', 'Basketball'),
-        ('tennis', 'Tennis'),
-    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    sport_type = models.CharField(max_length=20, choices=SPORT_CHOICES)
     location = models.CharField(max_length=255)
     price_per_hour = models.PositiveIntegerField(default=0)
     is_available = models.BooleanField(default=True)
@@ -43,7 +35,7 @@ class Field(models.Model):
 
 class Booking(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    field = models.ForeignKey(Field, on_delete=models.CASCADE, related_name="bookings")
+    venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="bookings")
     customer_name = models.CharField(max_length=100)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
