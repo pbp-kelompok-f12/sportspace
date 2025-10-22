@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Avg
 
 class Vendor(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="venues")
@@ -31,6 +32,11 @@ class Field(models.Model):
     is_available = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def average_rating(self):
+        agg = self.reviews.aggregate(avg=Avg('rating'))
+        return round(agg['avg'] or 0, 1)
+    
     def __str__(self):
         return f"{self.name} - {self.get_sport_type_display()}"
 
