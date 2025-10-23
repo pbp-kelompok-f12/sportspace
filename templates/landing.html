@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<section class="w-full flex items-stretch min-h-[calc(100vh-64px)]">
+  <div class="hidden md:flex w-2/5 bg-gradient-to-b from-orange-500 to-orange-300 items-center justify-center p-8">
+    <img src="{% static 'img/logowtext.png' %}" class="rounded-2xl shadow-xl" alt="SportSpace"/>
+  </div>
+  <div class="flex-1 flex items-center justify-center py-16">
+    <div class="text-white px-8 max-w-2xl">
+      <h1 class="text-5xl md:text-6xl font-extrabold leading-tight">We are SportSpace</h1>
+      <p class="text-xl mt-4 opacity-90">Welcome to the all in one web to rent Padel Courts</p>
+      <a href="/login/" class="inline-block mt-10 bg-lime-400 hover:bg-lime-500 text-[#0C2D57] font-extrabold px-10 py-4 rounded-2xl">Join Today</a>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-gradient-to-r from-lime-700 to-lime-500 text-white py-6 fixed bottom-0 left-0 w-full z-50">
+    <div class="max-w-6xl mx-auto px-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="{% static 'img/logoonly.png' %}" class="h-10 w-10 rounded-md"/>
+        <span class="font-semibold">Sport Space</span>
+        <span class="mx-3">|</span>
+        <a href="/" class="hover:underline">Home</a>
+      </div>
+      <div>
+        <p class="font-semibold">Contact Us:</p>
+        <p>sportspace@gmail.com</p>
+      </div>
+    </div>
+  </footer>
+{% endblock %}
+

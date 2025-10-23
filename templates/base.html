@@ -6,14 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% block meta %}{% endblock meta %}
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
   </head>
 
   <body class="min-h-screen bg-gradient-to-b from-[#002B4F] to-[#0069C0] text-white">
+    {% include 'navbar.html' %}
     {% block content %}
     {% endblock content %}
 
     {% include 'toast.html' %}
     {% include 'modal.html' %}
+    {% include 'footer.html' %}
 
   </body>
 </html>
