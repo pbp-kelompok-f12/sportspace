@@ -68,6 +68,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+GOOGLE_MAPS_API_KEY = 'AIzaSyB-EBEHoKCnM1BkHC8eD1F3zwbV7uB86-c'
+
 ROOT_URLCONF = 'sportspace.urls'
 
 TEMPLATES = [

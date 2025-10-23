@@ -29,6 +29,5 @@ urlpatterns = [
     # Review app
     path('review/', include('review.urls')),
     path('main/', include('main.urls')),
-    #
-    
+    path('home/', include('home.urls')),
 ]
