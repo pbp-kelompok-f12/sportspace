@@ -179,15 +179,16 @@
             const thumbnailUrl = fields.thumbnail_url || 'https://via.placeholder.com/300x180.png?text=No+Image';
             
             return `
-                <div class="court-card">
+                <div class="court-card" onclick="goToBooking('${fields.nama}', '${fields.alamat}', '${thumbnailUrl}')">
                     <img src="${thumbnailUrl}" alt="${fields.nama}">
                     <div class="court-card-body">
                         <h5>${fields.nama}</h5>
                         <p>${fields.alamat.split(' ').slice(0, 4).join(' ')}...</p>
                         ${fields.rating ? `<p class="text-muted">Rating: ${fields.rating} ⭐ (${fields.total_review || 0} reviews)</p>` : ''}
                         <div class="mt-2">
-                            <button class="btn btn-sm btn-warning me-1" onclick="editLapangan(${item.pk})">Edit</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteLapangan(${item.pk})">Delete</button>
+                            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); goToBooking('${fields.nama}', '${fields.alamat}', '${thumbnailUrl}')">Book Now</button>
+                            <button class="btn btn-sm btn-warning me-1" onclick="event.stopPropagation(); editLapangan(${item.pk})">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteLapangan(${item.pk})">Delete</button>
                         </div>
                     </div>
                 </div>
@@ -372,6 +373,55 @@
         allCourtsCarousel.innerHTML = renderLapanganCards(filtered);
     });
 
+    // Navigate to booking page
+    async function goToBooking(nama, alamat, thumbnailUrl) {
+        try {
+            // Show loading state
+            const loadingToast = showLoadingToast('Mengarahkan ke halaman booking...');
+            
+            // First, create or get the venue in the booking system
+            const response = await fetch('/booking/api/sync-venue/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    name: nama,
+                    location: alamat.split(',')[0].trim(), // Use first part as location
+                    address: alamat,
+                    image_url: thumbnailUrl
+                })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                // Redirect to booking page
+                window.location.href = `/booking/venue/${result.venue_id}/`;
+            } else {
+                loadingToast.remove();
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error syncing venue:', error);
+            alert('Gagal mengakses halaman booking');
+        }
+    }
+
+    // Show loading toast
+    function showLoadingToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 px-6 py-3 rounded-lg text-white bg-blue-500 z-50';
+        toast.innerHTML = `
+            <div class="flex items-center">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                ${message}
+            </div>
+        `;
+        document.body.appendChild(toast);
+        return toast;
+    }
+
     // Get CSRF token from cookies
     function getCookie(name) {
         let cookieValue = null;
@@ -424,12 +474,14 @@
         overflow: hidden;
         background: white;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: transform 0.3s;
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
     }
 
     .court-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border-color: #007bff;
     }
 
     .court-card img {

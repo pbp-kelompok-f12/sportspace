@@ -135,3 +135,41 @@ def delete_booking(request, booking_id):
         
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
+
+@login_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def sync_venue(request):
+    """Sync venue from home app to booking app"""
+    try:
+        data = json.loads(request.body)
+        name = data.get('name')
+        location = data.get('location')
+        address = data.get('address')
+        image_url = data.get('image_url')
+        
+        if not name or not address:
+            return JsonResponse({
+                'success': False,
+                'message': 'Name and address are required'
+            })
+        
+        # Create or get existing venue
+        venue, created = Venue.objects.get_or_create(
+            name=name,
+            defaults={
+                'location': location or 'Unknown',
+                'address': address,
+                'image_url': image_url,
+                'description': f'Padel court located at {address}'
+            }
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'venue_id': str(venue.id),
+            'message': 'Venue synced successfully'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
