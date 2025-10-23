@@ -376,9 +376,6 @@
     // Navigate to booking page
     async function goToBooking(nama, alamat, thumbnailUrl) {
         try {
-            // Show loading state
-            const loadingToast = showLoadingToast('Mengarahkan ke halaman booking...');
-            
             // First, create or get the venue in the booking system
             const response = await fetch('/booking/api/sync-venue/', {
                 method: 'POST',
@@ -399,7 +396,6 @@
                 // Redirect to booking page
                 window.location.href = `/booking/venue/${result.venue_id}/`;
             } else {
-                loadingToast.remove();
                 alert('Error: ' + result.message);
             }
         } catch (error) {
@@ -408,19 +404,6 @@
         }
     }
 
-    // Show loading toast
-    function showLoadingToast(message) {
-        const toast = document.createElement('div');
-        toast.className = 'fixed top-4 right-4 px-6 py-3 rounded-lg text-white bg-blue-500 z-50';
-        toast.innerHTML = `
-            <div class="flex items-center">
-                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                ${message}
-            </div>
-        `;
-        document.body.appendChild(toast);
-        return toast;
-    }
 
     // Get CSRF token from cookies
     function getCookie(name) {
