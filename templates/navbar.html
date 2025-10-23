@@ -1,23 +1,161 @@
 {% load static %}
-<nav class="w-full flex items-center justify-between px-6 py-3 bg-white/90 backdrop-blur shadow-sm sticky top-0 z-50">
-  <div class="flex items-center gap-3">
-    <img src="{% static 'img/logoonly.png' %}" alt="SportSpace" class="h-8 w-8 rounded-md"/>
-    <a href="/" class="text-[#0C2D57] font-semibold">Sport Space</a>
-  </div>
+<nav class="w-full flex flex-col sticky top-0 z-50 bg-white">
+  <div class="w-full bg-white shadow-sm flex items-center px-4 sm:px-6 py-3 relative">
 
-  <ul class="flex items-center gap-6 text-[#0C2D57]">
-    {% if user.is_authenticated %}
-      <li><a href="/home/" class="hover:opacity-80">Sewa Lapangan</a></li>
-      <li><a href="/booking/my-bookings/" class="hover:opacity-80">Bookingan Saya</a></li>
-      <li>
+    <div class="flex items-center gap-3 flex-none">
+      <img src="{% static 'img/logoonly.png' %}" alt="SportSpace" class="h-8 w-8 rounded-md"/>
+      <a href="/" class="text-[#0C2D57] font-semibold text-lg md:block hidden">Sport Space</a>
+      <a href="/" class="text-[#0C2D57] text-lg font-semibold block md:hidden ml-2">Sport Space</a>
+    </div>
+
+
+    <ul class="hidden md:flex flex-1 justify-center gap-12 text-[#0C2D57] font-semibold items-center">
+      {% if user.is_authenticated %}
+        <li>
+          <a href="/home/" class="px-4 py-2 hover:text-[#6AAA28] {% if request.path == '/home/' %}font{% endif %}">Sewa Lapangan</a>
+        </li>
+        <li>
+          <a href="/booking/my-bookings/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/booking/my-bookings/' in request.path %}font{% endif %}">Bookingan Saya</a>
+        </li>
+      {% else %}
+        <li>
+          <a href="/home/" class="px-4 py-2 text-[#6AAA28] hover:opacity-80 {% if request.path == '/home/' %}font-bold{% endif %}">Home</a>
+        </li>
+      {% endif %}
+    </ul>
+
+
+    <div class="hidden md:flex items-center gap-4 ml-auto">
+      {% if user.is_authenticated %}
         <form action="/accounts/logout/" method="post" class="m-0">
           {% csrf_token %}
-          <button class="px-3 py-1 rounded-md bg-[#0C2D57] text-white">Log Out</button>
+          <button class="px-3 py-1 rounded-md bg-[#0C2D57] text-white font-semibold">Log Out</button>
         </form>
-      </li>
-    {% else %}
-      <li><a href="/home/" class="text-[#6AAA28] font-semibold">Home</a></li>
-      <li><a href="/login/" class="px-3 py-1 rounded-md bg-[#0C2D57] text-white">Log in</a></li>
-    {% endif %}
-  </ul>
+      {% else %}
+        <a href="/login/" class="px-3 py-1 rounded-md bg-[#0C2D57] text-white font-semibold">Log in</a>
+      {% endif %}
+    </div>
+
+
+    <button id="navbar-toggle" class="md:hidden focus:outline-none absolute right-4" aria-label="Open menu">
+      <svg class="w-7 h-7 text-[#0C2D57]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16"/>
+      </svg>
+    </button>
+  </div>
+
+
+  <div id="mobile-nav"
+    class="fixed left-0 top-0 w-full bg-white z-[101] flex-col md:hidden opacity-0 pointer-events-none transition-all duration-200"
+    style="transition-property: opacity,transform;">
+    <div class="flex items-center px-4 pt-4 pb-2">
+      <img src="{% static 'img/logoonly.png' %}" alt="SportSpace" class="h-8 w-8 rounded-md"/>
+      <a href="/" class="text-[#0C2D57] font-semibold text-lg ml-2">Sport Space</a>
+      <button id="mobile-nav-close" class="ml-auto px-2 py-2 text-[#0C2D57] focus:outline-none" aria-label="Close menu">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <ul class="flex flex-col text-base w-full px-4 pb-4 gap-0">
+      {% if user.is_authenticated %}
+        <li>
+          <a href="/home/"
+             class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 {% if request.path == '/home/' %}bg-gray-100 font-bold{% endif %}"
+             onclick="closeMobileNav()">Sewa Lapangan</a>
+        </li>
+        <li>
+          <a href="/booking/my-bookings/"
+             class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 {% if '/booking/my-bookings/' in request.path %}bg-gray-100 font-bold{% endif %}"
+             onclick="closeMobileNav()">Bookingan Saya</a>
+        </li>
+        <li>
+          <form action="/accounts/logout/" method="post" class="m-0">
+            {% csrf_token %}
+            <button class="w-full py-3 rounded-md bg-[#0C2D57] text-white mt-2 font-semibold" type="submit" onclick="closeMobileNav()">Log Out</button>
+          </form>
+        </li>
+      {% else %}
+        <li>
+          <a href="/home/"
+             class="block w-full text-left py-3 font-semibold text-[#6AAA28] hover:bg-gray-100 {% if request.path == '/home/' %}bg-gray-100 font-bold{% endif %}"
+             onclick="closeMobileNav()">Home</a>
+        </li>
+        <li>
+          <a href="/login/"
+             class="w-full block py-3 rounded-md bg-[#0C2D57] text-white mt-2 text-center font-semibold"
+             onclick="closeMobileNav()">Log in</a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
 </nav>
+
+<script>
+  function closeMobileNav() {
+    const nav = document.getElementById('mobile-nav');
+    nav.classList.remove('opacity-100', 'pointer-events-auto');
+    nav.classList.add('opacity-0', 'pointer-events-none');
+  }
+  function openMobileNav() {
+    const nav = document.getElementById('mobile-nav');
+    nav.classList.remove('opacity-0', 'pointer-events-none');
+    nav.classList.add('opacity-100', 'pointer-events-auto');
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggle = document.getElementById('navbar-toggle');
+    const closeBtn = document.getElementById('mobile-nav-close');
+    const mobileNav = document.getElementById('mobile-nav');
+    if (toggle) {
+      toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (mobileNav.classList.contains('opacity-100')) {
+          closeMobileNav();
+        } else {
+          openMobileNav();
+        }
+      });
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeMobileNav();
+      });
+    }
+    document.addEventListener('click', function(e) {
+      if (mobileNav.classList.contains('opacity-100')) {
+        if (!mobileNav.contains(e.target) && e.target.id !== 'navbar-toggle') {
+          closeMobileNav();
+        }
+      }
+    });
+    window.addEventListener('resize', function() {
+      if (window.innerWidth >= 768) {
+        closeMobileNav();
+      }
+    });
+  });
+</script>
+
+<style>
+  #mobile-nav {
+    top: 0;
+    left: 0;
+    right: 0;
+    min-width: 0;
+    border-radius: 0 !important;
+  }
+  #mobile-nav.opacity-0 {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-24px) scale(0.99);
+  }
+  #mobile-nav.opacity-100 {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+  @media (min-width: 768px) {
+    #mobile-nav { display: none !important; }
+  }
+</style>
