@@ -41,20 +41,3 @@ class Venue(models.Model):
         return f"{self.name} - {self.get_sport_type_display()}"
 
 
-class Booking(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="bookings")
-    customer_name = models.CharField(max_length=100)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
-    total_price = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Booking {self.customer_name} - {self.field.name}"
-
-    @property
-    def duration_hours(self):
-        """Hitung durasi booking dalam jam."""
-        diff = self.end_time - self.start_time
-        return diff.total_seconds() / 3600

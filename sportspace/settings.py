@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'accounts',
     'review',
     'widget_tweaks',
+    'home',
 ]
 
 MIDDLEWARE = [
@@ -66,6 +67,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+GOOGLE_MAPS_API_KEY = 'AIzaSyB-EBEHoKCnM1BkHC8eD1F3zwbV7uB86-c'
 
 ROOT_URLCONF = 'sportspace.urls'
 
@@ -84,6 +87,8 @@ TEMPLATES = [
         },
     },
 ]
+
+GOOGLE_MAPS_API_KEY = 'AIzaSyB-EBEHoKCnM1BkHC8eD1F3zwbV7uB86-c'
 
 WSGI_APPLICATION = 'sportspace.wsgi.application'
 

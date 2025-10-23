@@ -21,11 +21,13 @@ from accounts import views as accounts_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Landing page and app routes
-    path('', include('main.urls')),
+    path('', include('home.urls')),
     # Auth routes
     path('accounts/', include('accounts.urls')),
     path('login/', accounts_views.login, name='login'),
     path('signup/', accounts_views.signup, name='signup'),
     # Review app
     path('review/', include('review.urls')),
+    path('main/', include('main.urls')),
+    path('home/', include('home.urls')),
 ]
