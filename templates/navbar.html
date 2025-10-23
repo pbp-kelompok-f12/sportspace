@@ -1,5 +1,5 @@
 {% load static %}
-<nav class="w-full flex items-center justify-between px-6 py-3 bg-white/90 backdrop-blur shadow-sm">
+<nav class="w-full flex items-center justify-between px-6 py-3 bg-white/90 backdrop-blur shadow-sm sticky top-0 z-50">
   <div class="flex items-center gap-3">
     <img src="{% static 'img/logoonly.png' %}" alt="SportSpace" class="h-8 w-8 rounded-md"/>
     <a href="/" class="text-[#0C2D57] font-semibold">Sport Space</a>
@@ -8,7 +8,7 @@
   <ul class="flex items-center gap-6 text-[#0C2D57]">
     {% if user.is_authenticated %}
       <li><a href="/home/" class="hover:opacity-80">Sewa Lapangan</a></li>
-      <li><a href="/bookingan/" class="hover:opacity-80">Bookingan Saya</a></li>
+      <li><a href="/booking/my-bookings/" class="hover:opacity-80">Bookingan Saya</a></li>
       <li>
         <form action="/accounts/logout/" method="post" class="m-0">
           {% csrf_token %}
