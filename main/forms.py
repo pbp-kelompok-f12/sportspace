@@ -1,5 +1,6 @@
 from django.forms import ModelForm
-from .models import Venue, Booking, Venue
+from .models import Venue
+#from .models import Booking
 
 class VenueForm(ModelForm):
     class Meta:
@@ -8,7 +9,7 @@ class VenueForm(ModelForm):
                   'description', 'facilities', 'photo_url',
                   'price_per_hour', 'is_available']
         
-class BookingForm(ModelForm):
-    class Meta:
-        model = Booking
-        fields = ["venue", "customer_name", "start_time", "end_time", "total_price"]
+#class BookingForm(ModelForm):
+ #   class Meta:
+  #      model = Booking
+   #     fields = ["venue", "customer_name", "start_time", "end_time", "total_price"]
