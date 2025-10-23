@@ -28,6 +28,8 @@ urlpatterns = [
     path('signup/', accounts_views.signup, name='signup'),
     # Review app
     path('review/', include('review.urls')),
+    # Booking app
+    path('booking/', include('booking.urls')),
     path('main/', include('main.urls')),
     path('home/', include('home.urls')),
 ]
