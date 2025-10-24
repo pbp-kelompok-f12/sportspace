@@ -5,13 +5,15 @@ class Profile(models.Model):
 
     ROLE_CHOICES = [
         ('customer', 'Customer'),
-        ('venue_owner', 'Venue Owner')
+        ('venue_owner', 'Venue Owner'),
+        ('admin', 'Admin')
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
     phone = models.CharField(max_length=15, blank=True)
     address = models.CharField(max_length=255, blank=True)
+    email = models.EmailField(blank=True, null=True)
     photo_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
