@@ -1,0 +1,27 @@
+<div class="reviews-section mt-5">
+  <h3>User Reviews</h3>
+  {% if reviews %}
+    <div id="reviewCarousel" class="carousel slide">
+      <div class="carousel-inner">
+        {% for r in reviews %}
+          <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <div class="card p-3">
+              <p><strong>{{ r.display_username }}</strong></p>
+              <p>{{ r.comment }}</p>
+              <p>⭐ {{ r.rating }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#reviewCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#reviewCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+      </button>
+    </div>
+  {% else %}
+    <p>No reviews yet.</p>
+  {% endif %}
+  <a href="{% url 'review:all_reviews' lapangan.id %}" class="btn btn-link">See all reviews</a>
+</div>

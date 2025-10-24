@@ -21,6 +21,10 @@
           <a href="/matchmaking/" class="px-4 py-2 text-[#0C2D57] hover:text-[#6AAA28] transition-colors duration-200">
             Matchmaking
           </a>
+        <li>
+          <a href="{% url 'review:my_reviews' %}" class="px-4 py-2 hover:text-[#6AAA28] {% if '/review/my/' in request.path %}font{% endif %}">
+            My Reviews
+          </a>  
         </li>
       {% else %}
         <li>
@@ -104,6 +108,11 @@
           </a>
         </li>
 
+        <li>
+          <a href="{% url 'review:my_reviews' %}" class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 {% if '/review/my/' in request.path %}bg-gray-100 font-bold{% endif %}" onclick="closeMobileNav()">
+            My Reviews
+          </a>
+        </li>
         <li>
           <form action="/accounts/logout/" method="post" class="m-0">
             {% csrf_token %}
