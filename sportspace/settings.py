@@ -51,11 +51,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    'adminpanel',
     'accounts',
     'review',
     'booking',
     'widget_tweaks',
     'home',
+    'matchmaking',
 ]
 
 MIDDLEWARE = [

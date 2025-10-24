@@ -1,27 +1,88 @@
+from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from main.models import Venue
+from home.models import LapanganPadel
 from .models import Review
-from .forms import ReviewForm
+from .forms import ReviewForm, EditReviewForm
 
+# review/views.py
 @login_required
-def add_review(request, venue_id):
-    venue = get_object_or_404(Venue, pk=venue_id)
+def add_review(request, lapangan_id):
+    lapangan = get_object_or_404(LapanganPadel, id=lapangan_id)
+    existing_review = Review.objects.filter(user=request.user, lapangan=lapangan).first()
+
+    if existing_review:
+        messages.error(request, "You have already reviewed this court. Edit your review instead.")
+        return redirect('review:my_reviews')
 
     if request.method == "POST":
         form = ReviewForm(request.POST)
         if form.is_valid():
             review = form.save(commit=False)
             review.user = request.user
-            review.venue = venue
+            review.lapangan = lapangan
+            review.rating = lapangan.rating  # rating dari API / model
             review.save()
-            return redirect("main:venue_detail", venue_id=venue.id)
+            return redirect('review:my_reviews')
     else:
         form = ReviewForm()
 
-    return render(request, "review/add_review.html", {"form": form, "venue": venue})
+    return render(request, "add_review.html", {"form": form, "lapangan": lapangan})
 
-def show_reviews(request, venue_id):
-    venue = get_object_or_404(Venue, pk=venue_id)
-    reviews = venue.reviews.all().order_by("-created_at")
-    return render(request, "review/show_reviews.html", {"venue": venue, "reviews": reviews})
+@login_required
+def all_reviews(request, id):
+    lapangan = get_object_or_404(LapanganPadel, pk=id)
+    reviews = lapangan.reviews.all()
+    return render(request, 'review/all_reviews.html', {
+        'lapangan': lapangan,
+        'reviews': reviews,
+    })
+
+@login_required
+def my_reviews(request):
+    reviews = Review.objects.filter(user=request.user)
+
+    if request.method == "POST":
+        form = ReviewForm(request.POST, user=request.user)
+        if form.is_valid():
+            lapangan = form.cleaned_data["lapangan"]
+            if Review.objects.filter(user=request.user, lapangan=lapangan).exists():
+                messages.error(request, f"You already reviewed {lapangan.nama}. You can only edit it.")
+            else:
+                review = form.save(commit=False)
+                review.user = request.user
+                review.lapangan = lapangan
+                review.rating = lapangan.rating  
+                review.save()
+                messages.success(request, "Review added successfully!")
+                return redirect("review:my_reviews")
+    else:
+        form = ReviewForm(user=request.user)
+
+    return render(request, "my_reviews.html", {"reviews": reviews, "form": form})
+    
+@login_required
+def edit_review(request, pk):
+    review = get_object_or_404(Review, pk=pk, user=request.user)
+    if request.method == "POST":
+        form = EditReviewForm(request.POST, instance=review)
+        if form.is_valid():
+            updated = form.save(commit=False)
+            updated.user = request.user
+            updated.lapangan = review.lapangan   # tetap pakai lapangan lama
+            updated.rating = review.lapangan.rating  
+            updated.save()
+            messages.success(request, "Review updated successfully!")
+            return redirect("review:my_reviews")
+    else:
+        form = EditReviewForm(instance=review)
+    return render(request, "edit_review.html", {"form": form, "review": review})
+
+@login_required
+def delete_review(request, pk):
+    review = get_object_or_404(Review, pk=pk, user=request.user) 
+    if request.method == "POST":
+        review.delete()
+        messages.success(request, "Review deleted successfully!")
+        return redirect('review:my_reviews')
+    return render(request, "delete_review.html", {"review": review})

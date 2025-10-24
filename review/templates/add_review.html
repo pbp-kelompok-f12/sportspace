@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Tambah Review untuk {{ field.name }}</h2>
-<form method="POST">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Submit</button>
-</form>
-<a href="{% url 'main:show_field' field.id %}">Kembali ke detail lapangan</a>
+<div class="container py-6">
+  <h2>Add Review for {{ lapangan.nama }}</h2>
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</div>
 {% endblock %}

@@ -1,7 +1,11 @@
 # home/views.py
 import requests
 import json
+<<<<<<< HEAD
 from django.shortcuts import render, redirect, get_object_or_404
+=======
+from django.shortcuts import get_object_or_404, render, redirect
+>>>>>>> origin/main
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
@@ -10,6 +14,7 @@ from django.views.decorators.http import require_http_methods
 from django.core import serializers
 from .models import LapanganPadel
 from .forms import LapanganPadelForm
+from review.models import Review
 
 def get_google_maps_data(query="lapangan padel di jakarta"):
     api_key = settings.GOOGLE_MAPS_API_KEY
@@ -190,3 +195,17 @@ def get_lapangan_modal(request, id=None):
         'lapangan': lapangan
     }
     return render(request, 'modal.html', context)
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+@login_required
+def detail_lapangan(request, id):
+    lapangan = get_object_or_404(LapanganPadel, pk=id)
+    reviews = lapangan.reviews.all()[:4]  # ambil 4 review terbaru
+    context = {
+        'lapangan': lapangan,
+        'reviews': reviews,
+    }
+    return render(request, 'home/detail_lapangan_new.html', context)
