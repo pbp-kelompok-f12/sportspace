@@ -27,7 +27,10 @@ from django.contrib.auth.models import User
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     """Otomatis buat Profile saat user dibuat"""
     if created:
-        role = 'admin' if instance.is_superuser else 'customer'
-        Profile.objects.create(user=instance, role=role)
+
+        Profile.objects.get_or_create(
+            user=instance,
+            defaults={'role': 'admin' if instance.is_superuser else 'customer'}
+        )
     else:
         instance.profile.save()
