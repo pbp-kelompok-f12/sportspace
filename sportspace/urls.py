@@ -32,5 +32,7 @@ urlpatterns = [
     path('booking/', include('booking.urls')),
     path('main/', include('main.urls')),
     path('home/', include('home.urls')),
+    # Admin panel app 
+    path('dashboard-admin/', include('adminpanel.urls')),
     path('matchmaking/', include('matchmaking.urls')),
 ]

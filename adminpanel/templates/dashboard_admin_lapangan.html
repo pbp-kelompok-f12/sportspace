@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-10 px-6 bg-transparent">
+
+  <!-- Kotak utama -->
+  <div class="w-full max-w-6xl bg-white/95 backdrop-blur-sm shadow-lg rounded-3xl p-10 border border-gray-200">
+
+    <h1 class="text-3xl font-bold text-[#0C2D57] text-center mb-6">Kelola Lapangan Padel</h1>
+
+    <!-- Counter -->
+    <div class="text-center mb-8">
+      <p class="text-gray-700 text-lg font-medium">
+        Total Lapangan Terdaftar:
+        <span id="lapanganCount" class="text-[#0C2D57] font-bold">0</span>
+      </p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 text-black">
+      <!-- Filter Jakarta -->
+      <div>
+        <label class="block text-sm font-medium text-[#0C2D57] mb-1">Wilayah Jakarta</label>
+        <select id="filterWilayah"
+                class="border border-gray-300 rounded-lg w-full p-2 bg-white text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none">
+          <option value="all">Semua Wilayah</option>
+          <option value="Jakarta Barat">Jakarta Barat</option>
+          <option value="Jakarta Pusat">Jakarta Pusat</option>
+          <option value="Jakarta Selatan">Jakarta Selatan</option>
+          <option value="Jakarta Timur">Jakarta Timur</option>
+          <option value="Jakarta Utara">Jakarta Utara</option>
+        </select>
+      </div>
+
+      <!-- Filter Rating -->
+      <div>
+        <label class="block text-sm font-medium text-[#0C2D57] mb-1">Rating Minimal</label>
+        <select id="filterRating"
+                class="border border-gray-300 rounded-lg w-full p-2 bg-white text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none">
+          <option value="all">Semua Rating</option>
+          <option value="4">4 ke atas</option>
+          <option value="3">3 ke atas</option>
+          <option value="2">2 ke atas</option>
+          <option value="1">1 ke atas</option>
+        </select>
+      </div>
+
+      <!-- Filter Review -->
+      <div>
+        <label class="block text-sm font-medium text-[#0C2D57] mb-1">Jumlah Review Minimal</label>
+        <input type="number" id="filterReview" placeholder="Contoh: 50"
+               class="border border-gray-300 rounded-lg w-full p-2 text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none">
+      </div>
+
+      <!-- Sorting -->
+      <div>
+        <label class="block text-sm font-medium text-[#0C2D57] mb-1">Urutkan Berdasarkan</label>
+        <select id="sortOption"
+                class="border border-gray-300 rounded-lg w-full p-2 bg-white text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none">
+          <option value="default">Default</option>
+          <option value="rating_desc">Rating Tertinggi</option>
+          <option value="review_desc">Review Terbanyak</option>
+          <option value="nama_asc">Nama A–Z</option>
+          <option value="nama_desc">Nama Z–A</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Tombol tambah -->
+    <div class="text-center mb-8">
+      <button id="btnAdd" class="bg-[#0C2D57] text-white px-5 py-2 rounded hover:bg-[#0A2347]">
+        + Tambah Lapangan
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto bg-white rounded-xl shadow-md">
+      <table class="w-full border-collapse border border-gray-300 text-sm text-black" id="lapanganTable">
+        <thead class="bg-gray-100 text-[#0C2D57]">
+          <tr>
+            <th class="border px-4 py-2 text-left">Nama</th>
+            <th class="border px-4 py-2 text-left">Alamat</th>
+            <th class="border px-4 py-2 text-center">Rating</th>
+            <th class="border px-4 py-2 text-center">Review</th>
+            <th class="border px-4 py-2 text-center">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="lapanganBody" class="text-black">
+          <!-- data akan diisi lewat JS -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal Form -->
+<div id="modalForm" class="fixed inset-0 bg-black/40 hidden justify-center items-center z-50">
+  <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-lg">
+    <h2 id="modalTitle" class="text-2xl font-bold text-[#0C2D57] mb-6 text-center">Tambah Lapangan</h2>
+
+    <form id="lapanganForm" class="space-y-4">
+      <input type="hidden" id="lapanganId">
+
+      <div>
+        <label for="nama" class="block text-sm font-semibold text-[#0C2D57] mb-1">Nama Lapangan</label>
+        <input type="text" id="nama" placeholder="Contoh: Padel Arena Kemang"
+               class="border border-gray-300 rounded-lg w-full p-2 text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none">
+      </div>
+
+      <div>
+        <label for="alamat" class="block text-sm font-semibold text-[#0C2D57] mb-1">Alamat</label>
+        <textarea id="alamat" placeholder="Contoh: Jl. Kemang Raya No.12, Jakarta Selatan"
+                  class="border border-gray-300 rounded-lg w-full p-2 text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none"></textarea>
+      </div>
+
+      <div>
+        <label for="rating" class="block text-sm font-semibold text-[#0C2D57] mb-1">Rating (0 - 5)</label>
+        <input type="number" id="rating" step="0.1" min="0" max="5" placeholder="Contoh: 4.5"
+               class="border border-gray-300 rounded-lg w-full p-2 text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none">
+      </div>
+
+      <div>
+        <label for="total_review" class="block text-sm font-semibold text-[#0C2D57] mb-1">Total Review</label>
+        <input type="number" id="total_review" placeholder="Contoh: 123"
+               class="border border-gray-300 rounded-lg w-full p-2 text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none">
+      </div>
+
+      <div class="flex justify-end gap-3 mt-5">
+        <button type="button" id="cancelBtn" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 font-medium text-gray-700">
+          Batal
+        </button>
+        <button type="submit" class="px-4 py-2 bg-[#0C2D57] text-white rounded-lg hover:bg-[#0A2347] font-medium">
+          Simpan
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const tableBody = document.getElementById('lapanganBody');
+  const modal = document.getElementById('modalForm');
+  const form = document.getElementById('lapanganForm');
+  const title = document.getElementById('modalTitle');
+  const btnAdd = document.getElementById('btnAdd');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const idField = document.getElementById('lapanganId');
+  const countDisplay = document.getElementById('lapanganCount');
+
+  // Filter + sort elements
+  const wilayahSelect = document.getElementById('filterWilayah');
+  const ratingSelect = document.getElementById('filterRating');
+  const reviewInput = document.getElementById('filterReview');
+  const sortSelect = document.getElementById('sortOption');
+
+  const csrfToken = '{{ csrf_token }}';
+  let allData = [];
+
+  function applyFiltersAndSort() {
+    const wilayah = wilayahSelect.value;
+    const minRating = ratingSelect.value === 'all' ? 0 : parseFloat(ratingSelect.value);
+    const minReview = parseInt(reviewInput.value) || 0;
+    const sortOption = sortSelect.value;
+
+    let filtered = allData.filter(item => {
+      const matchWilayah = wilayah === 'all' || item.alamat.includes(wilayah);
+      const matchRating = !item.rating || item.rating >= minRating;
+      const matchReview = !item.total_review || item.total_review >= minReview;
+      return matchWilayah && matchRating && matchReview;
+    });
+
+    // Sorting logic
+    if (sortOption === 'rating_desc') {
+      filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else if (sortOption === 'review_desc') {
+      filtered.sort((a, b) => (b.total_review || 0) - (a.total_review || 0));
+    } else if (sortOption === 'nama_asc') {
+      filtered.sort((a, b) => a.nama.localeCompare(b.nama));
+    } else if (sortOption === 'nama_desc') {
+      filtered.sort((a, b) => b.nama.localeCompare(a.nama));
+    }
+
+    renderTable(filtered);
+  }
+
+  function renderTable(data) {
+    tableBody.innerHTML = '';
+    countDisplay.textContent = data.length;
+    data.forEach(item => {
+      const row = `
+        <tr class="hover:bg-gray-50 text-black">
+          <td class="border px-4 py-2">${item.nama}</td>
+          <td class="border px-4 py-2">${item.alamat}</td>
+          <td class="border px-4 py-2 text-center">${item.rating ?? '-'}</td>
+          <td class="border px-4 py-2 text-center">${item.total_review ?? 0}</td>
+          <td class="border px-4 py-2 text-center">
+            <button onclick="editLapangan(${item.id})" class="text-blue-600 hover:underline">Edit</button> |
+            <button onclick="deleteLapangan(${item.id})" class="text-red-600 hover:underline">Hapus</button>
+          </td>
+        </tr>`;
+      tableBody.insertAdjacentHTML('beforeend', row);
+    });
+  }
+
+  function fetchLapangan() {
+    fetch('/dashboard-admin/lapangan/data/')
+      .then(res => res.json())
+      .then(data => {
+        allData = data.lapangan;
+        applyFiltersAndSort();
+      });
+  }
+
+  [wilayahSelect, ratingSelect, reviewInput, sortSelect].forEach(el => {
+    el.addEventListener('input', applyFiltersAndSort);
+    el.addEventListener('change', applyFiltersAndSort);
+  });
+
+  // CRUD functions tetap sama
+  window.editLapangan = (id) => {
+    const lap = allData.find(l => l.id === id);
+    idField.value = lap.id;
+    document.getElementById('nama').value = lap.nama;
+    document.getElementById('alamat').value = lap.alamat;
+    document.getElementById('rating').value = lap.rating || '';
+    document.getElementById('total_review').value = lap.total_review || '';
+    title.textContent = 'Edit Lapangan';
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+
+  window.deleteLapangan = (id) => {
+    if (!confirm('Yakin ingin menghapus lapangan ini?')) return;
+    fetch(`/dashboard-admin/lapangan/delete/${id}/`, {
+      method: 'DELETE',
+      headers: {'X-CSRFToken': csrfToken},
+    })
+      .then(res => res.json())
+      .then(() => fetchLapangan());
+  };
+
+  form.onsubmit = e => {
+    e.preventDefault();
+    const payload = {
+      nama: document.getElementById('nama').value,
+      alamat: document.getElementById('alamat').value,
+      rating: parseFloat(document.getElementById('rating').value) || null,
+      total_review: parseInt(document.getElementById('total_review').value) || 0,
+    };
+
+    const id = idField.value;
+    const url = id
+      ? `/dashboard-admin/lapangan/update/${id}/`
+      : `/dashboard-admin/lapangan/add/`;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+      body: JSON.stringify(payload)
+    })
+      .then(res => res.json())
+      .then(() => {
+        modal.classList.add('hidden');
+        fetchLapangan();
+      });
+  };
+
+  btnAdd.onclick = () => {
+    form.reset();
+    idField.value = '';
+    title.textContent = 'Tambah Lapangan';
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+
+  cancelBtn.onclick = () => modal.classList.add('hidden');
+
+  fetchLapangan();
+});
+</script>
+{% endblock %}

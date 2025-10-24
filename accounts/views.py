@@ -29,7 +29,12 @@ def login(request):
         if form.is_valid():
             user = form.get_user()
             auth_login(request, user)
-            return redirect('/home/')
+            role = user.profile.role
+            print("ROLE:", user.profile.role)
+            if role == 'admin':
+                return redirect('adminpanel:dashboard')
+            else:
+                return redirect('/home/')
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
@@ -55,13 +60,13 @@ def customer_dashboard(request):
 
 @login_required
 def profile_view(request):
-    profile = request.user.profile
+    # Pastikan profile selalu ada
+    profile, _ = Profile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
         form = ProfileForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
-            # kembalikan JSON response untuk AJAX
             return JsonResponse({
                 'success': True,
                 'message': 'Profil berhasil diperbarui!',
@@ -71,12 +76,16 @@ def profile_view(request):
                 'photo_url': profile.photo_url,
             })
         else:
-            # kalau form invalid, kirim error ke JS
             return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
+    # GET request
     else:
         form = ProfileForm(instance=profile)
-        return render(request, 'profile.html', {'profile': profile, 'form': form})
+        return render(request, 'profile.html', {
+            'profile': profile,
+            'form': form
+        })
+
 
 @login_required
 def edit_profile(request):

@@ -2,47 +2,44 @@
 <nav class="w-full flex flex-col sticky top-0 z-50 bg-white">
   <div class="w-full bg-white shadow-sm flex items-center px-4 sm:px-6 py-3 relative">
 
+    <!-- Logo -->
     <div class="flex items-center gap-3 flex-none">
       <img src="{% static 'img/logoonly.png' %}" alt="SportSpace" class="h-8 w-8 rounded-md"/>
       <a href="/" class="text-[#0C2D57] font-semibold text-lg md:block hidden">Sport Space</a>
       <a href="/" class="text-[#0C2D57] text-lg font-semibold block md:hidden ml-2">Sport Space</a>
     </div>
 
+    <!-- Menu Utama -->
     <ul class="hidden md:flex flex-1 justify-center gap-12 text-[#0C2D57] font-semibold items-center">
       {% if user.is_authenticated %}
-        <li>
-          <a href="/home/" class="px-4 py-2 hover:text-[#6AAA28] {% if request.path == '/home/' %}font{% endif %}">Sewa Lapangan</a>
-        </li>
-        <li>
-          <a href="/booking/my-bookings/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/booking/my-bookings/' in request.path %}font{% endif %}">Bookingan Saya</a>
-        </li>
-        <!-- ✅ Matchmaking tombol hover-only -->
-        <li>
-          <a href="/matchmaking/" class="px-4 py-2 text-[#0C2D57] hover:text-[#6AAA28] transition-colors duration-200">
-            Matchmaking
-          </a>
-        <li>
-          <a href="{% url 'review:my_reviews' %}" class="px-4 py-2 hover:text-[#6AAA28] {% if '/review/my/' in request.path %}font{% endif %}">
-            My Reviews
-          </a>  
-        </li>
+        {% if user.profile.role == 'admin' %}
+          <!-- Menu Admin -->
+          <li><a href="/dashboard-admin/" class="px-4 py-2 hover:text-[#6AAA28] {% if request.path == '/dashboard-admin/' %}font-bold{% endif %}">Dashboard Utama</a></li>
+          <li><a href="/dashboard-admin/lapangan/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/lapangan/' in request.path %}font-bold{% endif %}">Lapangan Padel</a></li>
+          <li><a href="/dashboard-admin/users/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/users/' in request.path %}font-bold{% endif %}">Manajemen Pengguna</a></li>
+          <li><a href="/dashboard-admin/bookings/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/bookings/' in request.path %}font-bold{% endif %}">Data Booking</a></li>
+        {% else %}
+          <!-- Menu Customer / Venue Owner -->
+          <li><a href="/home/" class="px-4 py-2 hover:text-[#6AAA28] {% if request.path == '/home/' %}font-bold{% endif %}">Sewa Lapangan</a></li>
+          <li><a href="/booking/my-bookings/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/booking/my-bookings/' in request.path %}font-bold{% endif %}">Bookingan Saya</a></li>
+          <li><a href="/matchmaking/" class="px-4 py-2 hover:text-[#6AAA28] transition-colors duration-200">Matchmaking</a></li>
+          <li><a href="{% url 'review:my_reviews' %}" class="px-4 py-2 hover:text-[#6AAA28] {% if '/review/my/' in request.path %}font-bold{% endif %}">My Reviews</a></li>
+        {% endif %}
       {% else %}
-        <li>
-          <a href="/home/" class="px-4 py-2 text-[#6AAA28] hover:opacity-80 {% if request.path == '/home/' %}font-bold{% endif %}">Home</a>
-        </li>
+        <!-- Menu untuk pengunjung -->
+        <li><a href="/home/" class="px-4 py-2 text-[#6AAA28] hover:opacity-80 {% if request.path == '/home/' %}font-bold{% endif %}">Home</a></li>
       {% endif %}
     </ul>
 
+    <!-- Profil & Tombol Login/Logout -->
     <div class="hidden md:flex items-center gap-4 ml-auto">
       {% if user.is_authenticated %}
         <a href="/accounts/profile/"
           class="flex items-center gap-2 px-2 py-0.5 rounded-md hover:bg-[#0C2D57]/10 transition no-underline">
           {% if user.profile.photo_url %}
-            <img src="{{ user.profile.photo_url }}" alt="Foto Profil"
-                class="h-7 w-7 rounded-full object-cover border border-[#0C2D57]/20">
+            <img src="{{ user.profile.photo_url }}" alt="Foto Profil" class="h-7 w-7 rounded-full object-cover border border-[#0C2D57]/20">
           {% else %}
-            <img src="{% static 'img/defaultprofile.png' %}" alt="Default"
-                class="h-7 w-7 rounded-full object-cover border border-[#0C2D57]/20">
+            <img src="{% static 'img/defaultprofile.png' %}" alt="Default" class="h-7 w-7 rounded-full object-cover border border-[#0C2D57]/20">
           {% endif %}
           <span class="text-sm font-medium text-[#0C2D57]">{{ user.username }}</span>
         </a>
@@ -55,6 +52,7 @@
       {% endif %}
     </div>
 
+    <!-- Tombol toggle mobile -->
     <button id="navbar-toggle" class="md:hidden focus:outline-none absolute right-4" aria-label="Open menu">
       <svg class="w-7 h-7 text-[#0C2D57]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16"/>
@@ -62,7 +60,7 @@
     </button>
   </div>
 
-  <!-- ✅ Mobile Nav -->
+  <!-- MOBILE NAV -->
   <div id="mobile-nav"
     class="fixed left-0 top-0 w-full bg-white z-[101] flex-col md:hidden opacity-0 pointer-events-none transition-all duration-200"
     style="transition-property: opacity,transform;">
@@ -78,58 +76,40 @@
 
     <ul class="flex flex-col text-base w-full px-4 pb-4 gap-0">
       {% if user.is_authenticated %}
-        <li>
-          <a href="/home/"
-             class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 {% if request.path == '/home/' %}bg-gray-100 font-bold{% endif %}"
-             onclick="closeMobileNav()">Sewa Lapangan</a>
-        </li>
-        <li>
-          <a href="/booking/my-bookings/"
-             class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 {% if '/booking/my-bookings/' in request.path %}bg-gray-100 font-bold{% endif %}"
-             onclick="closeMobileNav()">Bookingan Saya</a>
-        </li>
-        <!-- ✅ Matchmaking mobile hover-only -->
-        <li>
-          <a href="/matchmaking/"
-             class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 transition-colors duration-200"
-             onclick="closeMobileNav()">Matchmaking</a>
-        </li>
+        {% if user.profile.role == 'admin' %}
+          <!-- MOBILE ADMIN -->
+          <li><a href="/dashboard-admin/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Dashboard Utama</a></li>
+          <li><a href="/dashboard-admin/lapangan/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Lapangan Padel</a></li>
+          <li><a href="/dashboard-admin/users/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Manajemen Pengguna</a></li>
+          <li><a href="/dashboard-admin/bookings/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Data Booking</a></li>
+        {% else %}
+          <!-- MOBILE CUSTOMER -->
+          <li><a href="/home/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Sewa Lapangan</a></li>
+          <li><a href="/booking/my-bookings/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Bookingan Saya</a></li>
+          <li><a href="/matchmaking/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Matchmaking</a></li>
+          <li><a href="{% url 'review:my_reviews' %}" class="block py-3 text-[#0C2D57] hover:bg-gray-100">My Reviews</a></li>
+        {% endif %}
 
-        <li class="flex items-center gap-3 px-3 py-3 border-b border-gray-200">
+        <!-- Profile & Logout -->
+        <li class="flex items-center gap-3 px-3 py-3 border-t border-gray-200">
           <a href="/accounts/profile/" class="flex items-center gap-3 no-underline">
             {% if user.profile.photo_url %}
-              <img src="{{ user.profile.photo_url }}" alt="Foto Profil"
-                   class="h-9 w-9 rounded-full object-cover border border-[#0C2D57]/20">
+              <img src="{{ user.profile.photo_url }}" class="h-9 w-9 rounded-full object-cover border border-[#0C2D57]/20">
             {% else %}
-              <img src="{% static 'img/defaultprofile.png' %}" alt="Default"
-                   class="h-9 w-9 rounded-full object-cover border border-[#0C2D57]/20">
+              <img src="{% static 'img/defaultprofile.png' %}" class="h-9 w-9 rounded-full object-cover border border-[#0C2D57]/20">
             {% endif %}
-            <span class="text-[#0C2D57] font-semibold text-base">{{ user.username }}</span>
-          </a>
-        </li>
-
-        <li>
-          <a href="{% url 'review:my_reviews' %}" class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 {% if '/review/my/' in request.path %}bg-gray-100 font-bold{% endif %}" onclick="closeMobileNav()">
-            My Reviews
+            <span class="text-[#0C2D57] font-semibold">{{ user.username }}</span>
           </a>
         </li>
         <li>
           <form action="/accounts/logout/" method="post" class="m-0">
             {% csrf_token %}
-            <button class="w-full py-3 rounded-md bg-[#0C2D57] text-white mt-2 font-semibold" type="submit" onclick="closeMobileNav()">Log Out</button>
+            <button class="w-full py-3 bg-[#0C2D57] text-white mt-2 font-semibold" type="submit">Log Out</button>
           </form>
         </li>
       {% else %}
-        <li>
-          <a href="/home/"
-             class="block w-full text-left py-3 font-semibold text-[#6AAA28] hover:bg-gray-100 {% if request.path == '/home/' %}bg-gray-100 font-bold{% endif %}"
-             onclick="closeMobileNav()">Home</a>
-        </li>
-        <li>
-          <a href="/login/"
-             class="w-full block py-3 rounded-md bg-[#0C2D57] text-white mt-2 text-center font-semibold"
-             onclick="closeMobileNav()">Log in</a>
-        </li>
+        <li><a href="/home/" class="block py-3 text-[#6AAA28] hover:bg-gray-100">Home</a></li>
+        <li><a href="/login/" class="block py-3 bg-[#0C2D57] text-white mt-2 text-center rounded-md font-semibold">Log in</a></li>
       {% endif %}
     </ul>
   </div>
@@ -153,30 +133,17 @@
     if (toggle) {
       toggle.addEventListener('click', function(e) {
         e.stopPropagation();
-        if (mobileNav.classList.contains('opacity-100')) {
-          closeMobileNav();
-        } else {
-          openMobileNav();
-        }
+        mobileNav.classList.contains('opacity-100') ? closeMobileNav() : openMobileNav();
       });
     }
-    if (closeBtn) {
-      closeBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        closeMobileNav();
-      });
-    }
+    if (closeBtn) closeBtn.addEventListener('click', closeMobileNav);
     document.addEventListener('click', function(e) {
-      if (mobileNav.classList.contains('opacity-100')) {
-        if (!mobileNav.contains(e.target) && e.target.id !== 'navbar-toggle') {
-          closeMobileNav();
-        }
+      if (mobileNav.classList.contains('opacity-100') && !mobileNav.contains(e.target) && e.target.id !== 'navbar-toggle') {
+        closeMobileNav();
       }
     });
     window.addEventListener('resize', function() {
-      if (window.innerWidth >= 768) {
-        closeMobileNav();
-      }
+      if (window.innerWidth >= 768) closeMobileNav();
     });
   });
 </script>
@@ -203,4 +170,3 @@
     #mobile-nav { display: none !important; }
   }
 </style>
-
