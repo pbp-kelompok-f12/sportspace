@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<!-- Wrapper agar background dari base.html tetap terlihat -->
+<div class="min-h-screen flex items-center justify-center py-12 px-6 bg-transparent">
+
+  <!-- Kotak utama -->
+  <div class="w-full max-w-5xl bg-white/95 backdrop-blur-sm shadow-lg rounded-3xl p-10 border border-gray-200">
+
+    <!-- Judul Halaman -->
+    <div class="text-center mb-10">
+      <h1 class="text-4xl font-bold text-[#0C2D57]">Dashboard Admin Utama</h1>
+      <p class="text-gray-600 mt-2">
+        Kelola seluruh data dan sistem SportSpace melalui satu panel terpusat.
+      </p>
+    </div>
+
+    <!-- Grid Card Navigasi -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- Kelola Lapangan Padel -->
+      <a href="/dashboard-admin/lapangan/"
+         class="rounded-2xl bg-white hover:bg-gray-100 border border-gray-200 p-6 shadow-sm hover:shadow-md 
+                transition transform hover:-translate-y-1 flex flex-col justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-[#0C2D57] mb-2">Lapangan Padel</h2>
+          <p class="text-gray-600 text-sm">
+            Tambah, ubah, atau hapus data lapangan padel yang tersimpan di database.
+          </p>
+        </div>
+        <div class="mt-4 text-sm font-medium text-[#0C2D57]">Kelola &rarr;</div>
+      </a>
+
+      <!-- Kelola Pengguna -->
+      <a href="/dashboard-admin/users/"
+         class="rounded-2xl bg-white hover:bg-gray-100 border border-gray-200 p-6 shadow-sm hover:shadow-md 
+                transition transform hover:-translate-y-1 flex flex-col justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-[#0C2D57] mb-2">Manajemen Pengguna</h2>
+          <p class="text-gray-600 text-sm">
+            Lihat daftar pengguna, ubah role, atau hapus akun yang tidak aktif.
+          </p>
+        </div>
+        <div class="mt-4 text-sm font-medium text-[#0C2D57]">Kelola &rarr;</div>
+      </a>
+
+      <!-- Kelola Booking -->
+      <a href="/dashboard-admin/bookings/"
+         class="rounded-2xl bg-white hover:bg-gray-100 border border-gray-200 p-6 shadow-sm hover:shadow-md 
+                transition transform hover:-translate-y-1 flex flex-col justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-[#0C2D57] mb-2">Data Booking</h2>
+          <p class="text-gray-600 text-sm">
+            Pantau dan kelola semua transaksi pemesanan lapangan padel.
+          </p>
+        </div>
+        <div class="mt-4 text-sm font-medium text-[#0C2D57]">Kelola &rarr;</div>
+      </a>
+
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-10 px-6 bg-transparent">
+
+  <!-- Kotak utama -->
+  <div class="w-full max-w-6xl bg-white/95 backdrop-blur-sm shadow-lg rounded-3xl p-10 border border-gray-200">
+
+    <!-- Judul halaman -->
+    <div class="text-center mb-10">
+      <h1 class="text-3xl font-bold text-[#0C2D57]">Kelola Pengguna</h1>
+      <p class="text-gray-600 mt-2">Lihat, tambah, ubah, dan hapus pengguna sistem.</p>
+    </div>
+
+    <!-- Filter + Sort + Tombol tambah -->
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+      <div class="flex items-center gap-3 flex-wrap justify-center sm:justify-start">
+        <!-- Filter Role -->
+        <div class="flex items-center gap-2">
+          <label for="roleFilter" class="font-medium text-[#0C2D57]">Filter Role:</label>
+          <select id="roleFilter"
+            class="border border-gray-300 rounded-md px-3 py-1 text-black bg-white 
+                   focus:outline-none focus:ring focus:ring-[#0C2D57]/30">
+            <option value="all">Semua</option>
+            <option value="customer">Customer</option>
+            <option value="venue_owner">Venue Owner</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <!-- Sort Username -->
+        <div class="flex items-center gap-2">
+          <label for="sortOrder" class="font-medium text-[#0C2D57]">Urutkan Username:</label>
+          <select id="sortOrder"
+            class="border border-gray-300 rounded-md px-3 py-1 text-black bg-white
+                   focus:outline-none focus:ring focus:ring-[#0C2D57]/30">
+            <option value="asc">A → Z</option>
+            <option value="desc">Z → A</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tombol tambah -->
+      <button id="btnAddUser" class="bg-[#0C2D57] text-white px-5 py-2 rounded hover:bg-[#0A2347]">
+        + Tambah Pengguna
+      </button>
+    </div>
+
+    <!-- Count -->
+    <p class="text-gray-600 mb-4 text-sm text-center sm:text-left">
+      Total pengguna: <span id="userCount" class="font-semibold text-[#0C2D57]">0</span>
+    </p>
+
+    <!-- Tabel data pengguna -->
+    <div class="overflow-x-auto bg-white rounded-xl shadow-md">
+      <table class="w-full border-collapse border border-gray-300 text-sm" id="userTable">
+        <thead class="bg-gray-100 text-[#0C2D57]">
+          <tr>
+            <th class="border px-4 py-2 text-left">Username</th>
+            <th class="border px-4 py-2 text-left">Email</th>
+            <th class="border px-4 py-2 text-center">Role</th>
+            <th class="border px-4 py-2 text-left">Phone</th>
+            <th class="border px-4 py-2 text-left">Address</th>
+            <th class="border px-4 py-2 text-center">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="userBody" class="text-black">
+          <!-- data diisi dengan JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Form -->
+<div id="modalUserForm" class="fixed inset-0 bg-black/40 hidden justify-center items-center z-50">
+  <div class="bg-white rounded-xl p-6 w-[420px] shadow-md">
+    <h2 id="modalTitle" class="text-lg font-semibold text-[#0C2D57] mb-4">Tambah Pengguna</h2>
+    <form id="userForm" class="space-y-3">
+      <input type="hidden" id="userId">
+
+      <div>
+        <label class="text-sm font-medium text-[#0C2D57]">Username</label>
+        <input type="text" id="username" placeholder="Username" class="border rounded w-full p-2 mt-1 text-black">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-[#0C2D57]">Email</label>
+        <input type="email" id="email" placeholder="Email pengguna" class="border rounded w-full p-2 mt-1 text-black">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-[#0C2D57]">Role</label>
+        <select id="role" class="border rounded w-full p-2 mt-1 text-black bg-white">
+          <option value="customer">Customer</option>
+          <option value="venue_owner">Venue Owner</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-[#0C2D57]">Nomor Telepon</label>
+        <input type="text" id="phone" placeholder="Nomor telepon" class="border rounded w-full p-2 mt-1 text-black">
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-[#0C2D57]">Alamat</label>
+        <textarea id="address" placeholder="Alamat lengkap" class="border rounded w-full p-2 mt-1 text-black"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-3">
+        <button type="button" id="cancelBtn" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Batal</button>
+        <button type="submit" class="px-3 py-1 bg-[#0C2D57] text-white rounded hover:bg-[#0A2347]">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  #roleFilter option, #role option, #sortOrder option {
+    color: black !important;
+    background-color: white;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const userBody = document.getElementById('userBody');
+  const userCount = document.getElementById('userCount');
+  const modal = document.getElementById('modalUserForm');
+  const form = document.getElementById('userForm');
+  const title = document.getElementById('modalTitle');
+  const btnAdd = document.getElementById('btnAddUser');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const idField = document.getElementById('userId');
+  const roleFilter = document.getElementById('roleFilter');
+  const sortOrder = document.getElementById('sortOrder');
+  const csrfToken = '{{ csrf_token }}';
+
+  function fetchUsers() {
+    const selectedRole = roleFilter.value;
+    const selectedSort = sortOrder.value;
+    const url = selectedRole === 'all'
+      ? '/dashboard-admin/users/data/'
+      : `/dashboard-admin/users/data/?role=${selectedRole}`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        let users = data.users;
+
+        // Sorting berdasarkan username
+        users.sort((a, b) => {
+          const nameA = a.username.toLowerCase();
+          const nameB = b.username.toLowerCase();
+          if (selectedSort === 'asc') return nameA.localeCompare(nameB);
+          return nameB.localeCompare(nameA);
+        });
+
+        // Render tabel
+        userBody.innerHTML = '';
+        userCount.textContent = users.length;
+        users.forEach(u => {
+          const row = `
+            <tr class="hover:bg-gray-50 text-black">
+              <td class="border px-4 py-2">${u.username}</td>
+              <td class="border px-4 py-2">${u.email || '-'}</td>
+              <td class="border px-4 py-2 text-center capitalize">${u.role}</td>
+              <td class="border px-4 py-2">${u.phone || '-'}</td>
+              <td class="border px-4 py-2">${u.address || '-'}</td>
+              <td class="border px-4 py-2 text-center">
+                <button onclick="editUser(${u.id})" class="text-blue-600 hover:underline">Edit</button> |
+                <button onclick="deleteUser(${u.id})" class="text-red-600 hover:underline">Hapus</button>
+              </td>
+            </tr>`;
+          userBody.insertAdjacentHTML('beforeend', row);
+        });
+      });
+  }
+
+  roleFilter.addEventListener('change', fetchUsers);
+  sortOrder.addEventListener('change', fetchUsers);
+
+  btnAdd.onclick = () => {
+    form.reset();
+    idField.value = '';
+    title.textContent = 'Tambah Pengguna';
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+
+  cancelBtn.onclick = () => modal.classList.add('hidden');
+
+  window.editUser = (id) => {
+    fetch('/dashboard-admin/users/data/')
+      .then(res => res.json())
+      .then(data => {
+        const user = data.users.find(u => u.id === id);
+        idField.value = user.id;
+        document.getElementById('username').value = user.username;
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('role').value = user.role || 'customer';
+        document.getElementById('phone').value = user.phone || '';
+        document.getElementById('address').value = user.address || '';
+        title.textContent = 'Edit Pengguna';
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      });
+  };
+
+  window.deleteUser = (id) => {
+    if (!confirm('Yakin ingin menghapus pengguna ini?')) return;
+    fetch(`/dashboard-admin/users/delete/${id}/`, {
+      method: 'DELETE',
+      headers: { 'X-CSRFToken': csrfToken },
+    })
+      .then(res => res.json())
+      .then(() => fetchUsers());
+  };
+
+  form.onsubmit = e => {
+    e.preventDefault();
+    const payload = {
+      username: document.getElementById('username').value,
+      email: document.getElementById('email').value,
+      role: document.getElementById('role').value,
+      phone: document.getElementById('phone').value,
+      address: document.getElementById('address').value,
+    };
+
+    const id = idField.value;
+    const url = id
+      ? `/dashboard-admin/users/update/${id}/`
+      : `/dashboard-admin/users/add/`;
+
+    fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+      body: JSON.stringify(payload)
+    })
+      .then(res => res.json())
+      .then(() => {
+        modal.classList.add('hidden');
+        fetchUsers();
+      });
+  };
+
+  fetchUsers();
+});
+</script>
+{% endblock %}

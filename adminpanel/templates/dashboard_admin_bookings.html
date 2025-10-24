@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-10 px-6 bg-transparent">
+
+  <!-- Kotak utama -->
+  <div class="w-full max-w-6xl bg-white/95 backdrop-blur-sm shadow-lg rounded-3xl p-10 border border-gray-200">
+
+    <h1 class="text-3xl font-bold text-[#0C2D57] text-center mb-6">Kelola Booking</h1>
+
+    <!-- Counter -->
+    <div class="text-center mb-8">
+      <p class="text-gray-700 text-lg font-medium">
+        Total Booking:
+        <span id="bookingCount" class="text-[#0C2D57] font-bold">0</span>
+      </p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 text-black">
+      <!-- Filter Venue -->
+      <div>
+        <label class="block text-sm font-medium text-[#0C2D57] mb-1">Venue</label>
+        <select id="filterVenue"
+          class="border border-gray-300 rounded-lg w-full p-2 bg-white text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none">
+          <option value="all">Semua Venue</option>
+        </select>
+      </div>
+
+      <!-- Filter User -->
+      <div>
+        <label class="block text-sm font-medium text-[#0C2D57] mb-1">User</label>
+        <input type="text" id="filterUser" placeholder="Cari berdasarkan username"
+          class="border border-gray-300 rounded-lg w-full p-2 text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none">
+      </div>
+
+      <!-- Filter Tanggal -->
+      <div>
+        <label class="block text-sm font-medium text-[#0C2D57] mb-1">Tanggal</label>
+        <input type="date" id="filterDate"
+          class="border border-gray-300 rounded-lg w-full p-2 text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none">
+      </div>
+
+      <!-- Sorting -->
+      <div>
+        <label class="block text-sm font-medium text-[#0C2D57] mb-1">Urutkan Berdasarkan</label>
+        <select id="sortOption"
+          class="border border-gray-300 rounded-lg w-full p-2 bg-white text-black focus:ring-2 focus:ring-[#0C2D57] focus:outline-none">
+          <option value="default">Default</option>
+          <option value="tanggal_asc">Tanggal Terdekat</option>
+          <option value="tanggal_desc">Tanggal Terjauh</option>
+          <option value="venue_asc">Venue (A–Z)</option>
+          <option value="venue_desc">Venue (Z–A)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto bg-white rounded-xl shadow-md">
+      <table class="w-full border-collapse border border-gray-300 text-sm text-black" id="bookingTable">
+        <thead class="bg-gray-100 text-[#0C2D57]">
+          <tr>
+            <th class="border px-4 py-2 text-left">User</th>
+            <th class="border px-4 py-2 text-left">Venue</th>
+            <th class="border px-4 py-2 text-center">Tanggal</th>
+            <th class="border px-4 py-2 text-center">Waktu</th>
+            <th class="border px-4 py-2 text-left">Kontak</th>
+            <th class="border px-4 py-2 text-center">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="bookingBody" class="text-black">
+          <!-- data akan diisi lewat JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const tableBody = document.getElementById('bookingBody');
+  const countDisplay = document.getElementById('bookingCount');
+  const venueSelect = document.getElementById('filterVenue');
+  const userInput = document.getElementById('filterUser');
+  const dateInput = document.getElementById('filterDate');
+  const sortSelect = document.getElementById('sortOption');
+  const csrfToken = '{{ csrf_token }}';
+  let allData = [];
+  let allVenues = [];
+
+  // Fetch initial data
+  function fetchBookings() {
+    fetch('/dashboard-admin/bookings/data/')
+      .then(res => res.json())
+      .then(data => {
+        allData = data.bookings;
+        allVenues = [...new Set(allData.map(b => b.venue_name))];
+        renderVenueOptions();
+        applyFiltersAndSort();
+      });
+  }
+
+  function renderVenueOptions() {
+    venueSelect.innerHTML = '<option value="all">Semua Venue</option>';
+    allVenues.forEach(v => {
+      venueSelect.insertAdjacentHTML('beforeend', `<option value="${v}">${v}</option>`);
+    });
+  }
+
+  function applyFiltersAndSort() {
+    const venue = venueSelect.value;
+    const user = userInput.value.toLowerCase();
+    const date = dateInput.value;
+    const sortOption = sortSelect.value;
+
+    let filtered = allData.filter(item => {
+      const matchVenue = venue === 'all' || item.venue_name === venue;
+      const matchUser = item.username.toLowerCase().includes(user);
+      const matchDate = !date || item.booking_date === date;
+      return matchVenue && matchUser && matchDate;
+    });
+
+    // Sorting
+    if (sortOption === 'tanggal_asc') {
+      filtered.sort((a, b) => a.booking_date.localeCompare(b.booking_date));
+    } else if (sortOption === 'tanggal_desc') {
+      filtered.sort((a, b) => b.booking_date.localeCompare(a.booking_date));
+    } else if (sortOption === 'venue_asc') {
+      filtered.sort((a, b) => a.venue_name.localeCompare(b.venue_name));
+    } else if (sortOption === 'venue_desc') {
+      filtered.sort((a, b) => b.venue_name.localeCompare(a.venue_name));
+    }
+
+    renderTable(filtered);
+  }
+
+  function renderTable(data) {
+    tableBody.innerHTML = '';
+    countDisplay.textContent = data.length;
+    data.forEach(item => {
+      const row = `
+        <tr class="hover:bg-gray-50 text-black">
+          <td class="border px-4 py-2">${item.username}</td>
+          <td class="border px-4 py-2">${item.venue_name}</td>
+          <td class="border px-4 py-2 text-center">${item.booking_date}</td>
+          <td class="border px-4 py-2 text-center">${item.start_time} - ${item.end_time}</td>
+          <td class="border px-4 py-2">
+            <div>${item.customer_name}</div>
+            <div class="text-sm text-gray-600">${item.customer_email}</div>
+            <div class="text-sm text-gray-600">${item.customer_phone}</div>
+          </td>
+          <td class="border px-4 py-2 text-center">
+            <button onclick="deleteBooking('${item.id}')" class="text-red-600 hover:underline">Hapus</button>
+          </td>
+        </tr>`;
+      tableBody.insertAdjacentHTML('beforeend', row);
+    });
+  }
+
+  window.deleteBooking = (id) => {
+    if (!confirm('Yakin ingin menghapus booking ini?')) return;
+    fetch(`/dashboard-admin/bookings/delete/${id}/`, {
+      method: 'DELETE',
+      headers: {'X-CSRFToken': csrfToken},
+    })
+    .then(res => res.json())
+    .then(() => fetchBookings());
+  };
+
+  [venueSelect, userInput, dateInput, sortSelect].forEach(el => {
+    el.addEventListener('input', applyFiltersAndSort);
+    el.addEventListener('change', applyFiltersAndSort);
+  });
+
+  fetchBookings();
+});
+</script>
+{% endblock %}

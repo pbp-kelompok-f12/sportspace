@@ -1,7 +1,71 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
-<div class="container mt-5">
-  <h2>Admin Dashboard</h2>
-  <p>Welcome, {{ user.username }}! You can manage users, verify venue owners, and monitor transactions.</p>
+<div class="min-h-screen flex flex-col items-center py-10">
+
+  <!-- Header -->
+  <div class="backdrop-blur-md bg-white/90 shadow-md rounded-xl w-full max-w-4xl p-8 mb-8">
+    <h1 class="text-3xl font-bold text-[#0C2D57] mb-2">Admin Dashboard</h1>
+    <p class="text-gray-700">
+      Selamat datang, <b>{{ user.username }}</b>! Anda login sebagai 
+      <span class="text-[#0C2D57] font-semibold">{{ user.profile.role|title }}</span>.
+    </p>
+    <p class="text-sm text-gray-600 mt-2">
+      Dari sini, Anda dapat mengelola pengguna, memverifikasi pemilik venue, dan memantau transaksi.
+    </p>
+  </div>
+
+  <!-- Statistik ringkas -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mb-10">
+    <div class="bg-[#0C2D57]/90 text-white p-6 rounded-xl shadow-md text-center">
+      <h2 class="text-lg font-semibold">Total Pengguna</h2>
+      <p class="text-3xl font-bold mt-2">{{ total_users|default:"0" }}</p>
+    </div>
+    <div class="bg-[#F87E18]/90 text-white p-6 rounded-xl shadow-md text-center">
+      <h2 class="text-lg font-semibold">Total Venue</h2>
+      <p class="text-3xl font-bold mt-2">{{ total_venues|default:"0" }}</p>
+    </div>
+    <div class="bg-green-600/90 text-white p-6 rounded-xl shadow-md text-center">
+      <h2 class="text-lg font-semibold">Total Booking</h2>
+      <p class="text-3xl font-bold mt-2">{{ total_bookings|default:"0" }}</p>
+    </div>
+  </div>
+
+  <!-- Navigasi aksi -->
+  <div class="backdrop-blur-md bg-white/80 shadow-md rounded-xl w-full max-w-4xl p-8">
+    <h2 class="text-2xl font-semibold text-[#0C2D57] mb-6">Manajemen Sistem</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Kelola Pengguna -->
+      <a href="/accounts/manage-users/" 
+         class="bg-[#0C2D57]/90 hover:bg-[#0a2243] text-white p-6 rounded-lg flex flex-col items-center justify-center shadow transition duration-200">
+        <span class="text-4xl mb-2">👤</span>
+        <span class="font-medium text-lg">Kelola Pengguna</span>
+      </a>
+
+      <!-- Kelola Venue -->
+      <a href="/venues/manage/" 
+         class="bg-[#F87E18]/90 hover:bg-[#d46c14] text-white p-6 rounded-lg flex flex-col items-center justify-center shadow transition duration-200">
+        <span class="text-4xl mb-2">🏟️</span>
+        <span class="font-medium text-lg">Kelola Venue</span>
+      </a>
+
+      <!-- Pantau Booking -->
+      <a href="/booking/manage/" 
+         class="bg-green-600/90 hover:bg-green-700 text-white p-6 rounded-lg flex flex-col items-center justify-center shadow transition duration-200">
+        <span class="text-4xl mb-2">📅</span>
+        <span class="font-medium text-lg">Pantau Booking</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Tombol logout -->
+  <div class="mt-10">
+    <a href="/accounts/logout/" 
+       class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-full transition duration-200 shadow-md">
+      Logout
+    </a>
+  </div>
+
 </div>
 {% endblock %}
