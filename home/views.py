@@ -1,11 +1,7 @@
 # home/views.py
 import requests
 import json
-<<<<<<< HEAD
 from django.shortcuts import render, redirect, get_object_or_404
-=======
-from django.shortcuts import get_object_or_404, render, redirect
->>>>>>> origin/main
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
@@ -195,10 +191,7 @@ def get_lapangan_modal(request, id=None):
         'lapangan': lapangan
     }
     return render(request, 'modal.html', context)
-        return JsonResponse({
-            'status': 'error',
-            'message': str(e)
-        }, status=500)
+        
 
 @login_required
 def detail_lapangan(request, id):
