@@ -34,4 +34,5 @@ urlpatterns = [
     path('home/', include('home.urls')),
     # Admin panel app 
     path('dashboard-admin/', include('adminpanel.urls')),
+    path('matchmaking/', include('matchmaking.urls')),
 ]

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex justify-center items-center min-h-[calc(100vh-64px)] px-6 py-12">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full text-gray-800">
+    <h1 class="text-2xl font-bold text-orange-500 mb-4">Detail Match</h1>
+    <p><strong>Mode:</strong> {{ match.mode }}</p>
+    <p><strong>Dibuat oleh:</strong> {{ match.created_by.username }}</p>
+
+    <p class="mt-4 font-semibold">Pemain Terdaftar:</p>
+    <ul class="list-disc list-inside mb-4 text-gray-700">
+      {% for player in match.players.all %}
+        <li>{{ player.username }}</li>
+      {% endfor %}
+      {% if match.temp_teammate %}
+        <li>{{ match.temp_teammate }}</li>
+      {% endif %}
+    </ul>
+
+    <p><strong>Status:</strong>
+      {% if match.is_full %}
+        <span class="text-red-500 font-semibold">Match sudah penuh</span>
+      {% else %}
+        <span class="text-green-600 font-semibold">{{ match.player_count }}/{{ match.max_players }} pemain</span>
+      {% endif %}
+    </p>
+
+    <button onclick="window.location.href='{% url 'matchmaking:home' %}'"
+            class="mt-6 bg-gray-200 px-6 py-2 rounded-full hover:bg-gray-300 transition">Kembali</button>
+  </div>
+</div>
+{% endblock %}

@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'booking',
     'widget_tweaks',
     'home',
+    'matchmaking',
 ]
 
 MIDDLEWARE = [

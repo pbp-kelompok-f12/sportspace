@@ -14,32 +14,20 @@
       {% if user.is_authenticated %}
         {% if user.profile.role == 'admin' %}
           <!-- Menu Admin -->
-          <li>
-            <a href="/dashboard-admin/" class="px-4 py-2 hover:text-[#6AAA28] {% if request.path == '/dashboard-admin/' %}font-bold{% endif %}">Dashboard Utama</a>
-          </li>
-          <li>
-            <a href="/dashboard-admin/lapangan/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/lapangan/' in request.path %}font-bold{% endif %}">Lapangan Padel</a>
-          </li>
-          <li>
-            <a href="/dashboard-admin/users/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/users/' in request.path %}font-bold{% endif %}">Manajemen Pengguna</a>
-          </li>
-          <li>
-            <a href="/dashboard-admin/bookings/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/bookings/' in request.path %}font-bold{% endif %}">Data Booking</a>
-          </li>
+          <li><a href="/dashboard-admin/" class="px-4 py-2 hover:text-[#6AAA28] {% if request.path == '/dashboard-admin/' %}font-bold{% endif %}">Dashboard Utama</a></li>
+          <li><a href="/dashboard-admin/lapangan/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/lapangan/' in request.path %}font-bold{% endif %}">Lapangan Padel</a></li>
+          <li><a href="/dashboard-admin/users/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/users/' in request.path %}font-bold{% endif %}">Manajemen Pengguna</a></li>
+          <li><a href="/dashboard-admin/bookings/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/bookings/' in request.path %}font-bold{% endif %}">Data Booking</a></li>
         {% else %}
           <!-- Menu Customer / Venue Owner -->
-          <li>
-            <a href="/home/" class="px-4 py-2 hover:text-[#6AAA28] {% if request.path == '/home/' %}font-bold{% endif %}">Sewa Lapangan</a>
-          </li>
-          <li>
-            <a href="/booking/my-bookings/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/booking/my-bookings/' in request.path %}font-bold{% endif %}">Bookingan Saya</a>
-          </li>
+          <li><a href="/home/" class="px-4 py-2 hover:text-[#6AAA28] {% if request.path == '/home/' %}font-bold{% endif %}">Sewa Lapangan</a></li>
+          <li><a href="/booking/my-bookings/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/booking/my-bookings/' in request.path %}font-bold{% endif %}">Bookingan Saya</a></li>
+          <li><a href="/matchmaking/" class="px-4 py-2 hover:text-[#6AAA28] transition-colors duration-200">Matchmaking</a></li>
+          <li><a href="{% url 'review:my_reviews' %}" class="px-4 py-2 hover:text-[#6AAA28] {% if '/review/my/' in request.path %}font-bold{% endif %}">My Reviews</a></li>
         {% endif %}
       {% else %}
         <!-- Menu untuk pengunjung -->
-        <li>
-          <a href="/home/" class="px-4 py-2 text-[#6AAA28] hover:opacity-80 {% if request.path == '/home/' %}font-bold{% endif %}">Home</a>
-        </li>
+        <li><a href="/home/" class="px-4 py-2 text-[#6AAA28] hover:opacity-80 {% if request.path == '/home/' %}font-bold{% endif %}">Home</a></li>
       {% endif %}
     </ul>
 
@@ -92,14 +80,17 @@
           <!-- MOBILE ADMIN -->
           <li><a href="/dashboard-admin/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Dashboard Utama</a></li>
           <li><a href="/dashboard-admin/lapangan/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Lapangan Padel</a></li>
-          <li><a href="/dashboard-admin/users/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Managemen Pengguna</a></li>
+          <li><a href="/dashboard-admin/users/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Manajemen Pengguna</a></li>
           <li><a href="/dashboard-admin/bookings/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Data Booking</a></li>
         {% else %}
           <!-- MOBILE CUSTOMER -->
           <li><a href="/home/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Sewa Lapangan</a></li>
           <li><a href="/booking/my-bookings/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Bookingan Saya</a></li>
+          <li><a href="/matchmaking/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Matchmaking</a></li>
+          <li><a href="{% url 'review:my_reviews' %}" class="block py-3 text-[#0C2D57] hover:bg-gray-100">My Reviews</a></li>
         {% endif %}
 
+        <!-- Profile & Logout -->
         <li class="flex items-center gap-3 px-3 py-3 border-t border-gray-200">
           <a href="/accounts/profile/" class="flex items-center gap-3 no-underline">
             {% if user.profile.photo_url %}
@@ -110,7 +101,6 @@
             <span class="text-[#0C2D57] font-semibold">{{ user.username }}</span>
           </a>
         </li>
-
         <li>
           <form action="/accounts/logout/" method="post" class="m-0">
             {% csrf_token %}
@@ -146,9 +136,7 @@
         mobileNav.classList.contains('opacity-100') ? closeMobileNav() : openMobileNav();
       });
     }
-    if (closeBtn) {
-      closeBtn.addEventListener('click', closeMobileNav);
-    }
+    if (closeBtn) closeBtn.addEventListener('click', closeMobileNav);
     document.addEventListener('click', function(e) {
       if (mobileNav.classList.contains('opacity-100') && !mobileNav.contains(e.target) && e.target.id !== 'navbar-toggle') {
         closeMobileNav();

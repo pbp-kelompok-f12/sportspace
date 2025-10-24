@@ -2,3 +2,7 @@
 .rounded-2xl { border-radius: 1rem; }
 .rounded-md { border-radius: .375rem; }
 
+select, select option {
+  color: #1f2937 !important;  
+  background-color: #ffffff !important;
+}
