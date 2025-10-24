@@ -1,0 +1,167 @@
+/* home/static/home/css/style.css */
+
+/* --- Variabel Global & Body --- */
+:root {
+    --dark-blue: #0D2847;
+    --teal-accent: #69F4D9;
+    --light-gray: #F8F9FA;
+    --text-color: #333;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--light-gray);
+    color: var(--text-color);
+}
+
+/* --- Navbar --- */
+.navbar {
+    background-color: #FFF;
+    border-bottom: 1px solid #EAEAEA;
+}
+
+.navbar-brand img {
+    height: 30px;
+}
+
+.nav-link {
+    font-weight: 500;
+}
+
+.btn-logout {
+    background-color: var(--dark-blue);
+    color: white;
+    font-weight: 500;
+}
+
+/* --- Hero Section --- */
+.hero-section {
+    background: var(--dark-blue) url('https://images.unsplash.com/photo-1627252224399-73130d715264?q=80&w=2070&auto=format&fit=crop') no-repeat center center;
+    background-size: cover;
+    background-blend-mode: overlay;
+    padding: 60px 0;
+    color: white;
+}
+
+.search-box {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.search-box h2 {
+    color: var(--dark-blue);
+    font-weight: 700;
+    font-size: 1.8rem;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.btn-search {
+    background-color: var(--dark-blue);
+    color: white;
+    border-radius: 10px;
+    padding: 12px;
+    width: 100%;
+    font-weight: 500;
+}
+
+.hero-logo {
+    background-color: var(--dark-blue);
+    padding: 20px;
+    border-radius: 25px;
+    transform: rotate(5deg);
+}
+
+.hero-logo img {
+    max-width: 150px;
+}
+
+/* --- Courts Section --- */
+.courts-section {
+    padding: 60px 0;
+}
+
+.section-title {
+    color: var(--dark-blue);
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+.courts-carousel-wrapper {
+    position: relative;
+}
+
+.courts-carousel {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    gap: 20px;
+    padding-bottom: 15px; /* space for scrollbar if visible */
+    /* Hide scrollbar */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+}
+.courts-carousel::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and Opera */
+}
+
+.court-card {
+    flex: 0 0 auto;
+    width: 300px;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    background-color: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.court-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.court-card-body {
+    padding: 20px;
+}
+.court-card-body h5 {
+    font-weight: 700;
+    color: var(--dark-blue);
+}
+.court-card-body p {
+    color: #6c757d;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    color: var(--dark-blue);
+    font-size: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.carousel-control-prev { left: -20px; }
+.carousel-control-next { right: -20px; }
+
+/* --- Footer --- */
+.footer {
+    background-color: #FFF;
+    padding: 30px 0;
+    border-top: 1px solid #EAEAEA;
+    color: #6c757d;
+}
+
+.footer img {
+    height: 30px;
+}

@@ -52,7 +52,9 @@
 <!-- SCRIPTS -->
 <script src="{% static 'home/js/toast.js' %}"></script>
 <script>
-    let allLapangan = [];
+    if (typeof allLapangan === 'undefined') {
+        let allLapangan = [];
+    }
     document.addEventListener('DOMContentLoaded', loadLapangan);
 
     async function loadLapangan() {
