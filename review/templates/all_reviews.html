@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-6">
+  <h2>All Reviews for {{ lapangan.nama }}</h2>
+
+  {% for r in reviews %}
+    <div class="card p-3 mb-3">
+      <p><strong>{{ r.display_username }}</strong></p>
+      <p>{{ r.comment }}</p>
+      <p>⭐ {{ r.rating }}</p>
+      <small>{{ r.created_at|date:"M d, Y H:i" }}</small>
+    </div>
+  {% empty %}
+    <p>No reviews yet.</p>
+  {% endfor %}
+
+  <a href="{% url 'review:add_review' lapangan.id %}" class="btn btn-success mt-4">Add Review</a>
+</div>
+{% endblock %}

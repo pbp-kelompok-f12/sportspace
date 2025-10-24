@@ -1,15 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import User
-from main.models import Venue
+from home.models import LapanganPadel
 
 # Create your models here.
 class Review(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="reviews")
+    lapangan = models.ForeignKey(LapanganPadel, on_delete=models.CASCADE, related_name="reviews")
     rating = models.PositiveIntegerField()
     comment = models.TextField()
+    anonymous = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     views = models.IntegerField(default=0)
 
     def __str__(self):
         return f'Review by {self.user.username} - Rating: {self.rating}'
+    
+    class Meta:
+        unique_together = ('user', 'lapangan')  # 1 user 1 review per lapangan

@@ -9,10 +9,12 @@
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
   </head>
 
-  <body class="min-h-screen bg-gradient-to-b from-[#002B4F] to-[#0069C0] text-white">
+  <body class="flex flex-col min-h-screen bg-gradient-to-b from-[#002B4F] to-[#0069C0] text-white">
     {% include 'navbar.html' %}
-    {% block content %}
-    {% endblock content %}
+
+    <main class="flex-grow">
+      {% block content %}{% endblock content %}
+    </main>
 
     {% include 'toast.html' %}
     {% include 'modal.html' %}
