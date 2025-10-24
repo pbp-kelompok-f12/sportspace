@@ -49,7 +49,6 @@
               class="inline-block bg-[#0C2D57] hover:bg-[#09396a] text-white px-6 py-2 rounded-lg transition font-semibold">
         Ubah Profil
       </button>
-      <div id="notif" class="hidden mt-4 text-green-600 font-medium"></div>
     </div>
   </div>
 </div>
@@ -58,7 +57,7 @@
 <div id="edit-modal"
      class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50 flex items-center justify-center">
   <div id="modal-content"
-       class="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl relative transform transition-all duration-300 scale-95 opacity-0">
+     class="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl relative transform transition-all duration-500 ease-out scale-95 opacity-0">
     <button id="close-modal"
             class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl">✕</button>
     <h3 class="text-xl font-semibold text-[#0C2D57] mb-4 text-center">Edit Profil</h3>
@@ -100,7 +99,6 @@
   const openBtn = document.getElementById('edit-btn');
   const closeBtn = document.getElementById('close-modal');
   const form = document.getElementById('edit-form');
-  const notif = document.getElementById('notif');
   const saveBtn = document.getElementById('save-btn');
 
   // Buka modal dengan animasi
@@ -124,46 +122,54 @@
     }
   });
 
+  // Tutup modal dengan animasi halus
+  closeBtn.addEventListener('click', () => {
+    modalContent.classList.add('scale-95', 'opacity-0');
+    modalContent.classList.remove('ease-out');
+    modalContent.classList.add('ease-in');
+    setTimeout(() => modal.classList.add('hidden'), 300);
+  });
+
   // Submit via AJAX (fetch)
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Tombol loading
     saveBtn.textContent = "Menyimpan...";
     saveBtn.disabled = true;
 
     const formData = new FormData(form);
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    const response = await fetch("", {
-      method: "POST",
-      headers: { "X-CSRFToken": csrfToken },
-      body: formData
-    });
+    try {
+      const response = await fetch("", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken },
+        body: formData
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (data.success) {
-      document.getElementById('profile-email').textContent = data.email || "-";
-      document.getElementById('profile-phone').textContent = data.phone || "-";
-      document.getElementById('profile-address').textContent = data.address || "-";
-      if (data.photo_url) {
-        document.getElementById('profile-photo').src = data.photo_url;
+      if (data.success) {
+        document.getElementById('profile-email').textContent = data.email || "-";
+        document.getElementById('profile-phone').textContent = data.phone || "-";
+        document.getElementById('profile-address').textContent = data.address || "-";
+        if (data.photo_url) {
+          document.getElementById('profile-photo').src = data.photo_url;
+        }
+
+        // Tutup modal dan tampilkan toast sukses
+        modalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 150);
+        showToast(data.message || "Profil berhasil diperbarui!", 'success');
+
+      } else {
+        showToast("Terjadi kesalahan saat menyimpan data.", 'error');
       }
-
-      notif.textContent = data.message;
-      notif.classList.remove('hidden', 'text-red-600');
-      notif.classList.add('text-green-600');
-
-      modalContent.classList.add('scale-95', 'opacity-0');
-      setTimeout(() => modal.classList.add('hidden'), 150);
-    } else {
-      notif.textContent = "Terjadi kesalahan saat menyimpan data.";
-      notif.classList.remove('hidden', 'text-green-600');
-      notif.classList.add('text-red-600');
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal terhubung ke server.", 'error');
     }
 
-    // Kembalikan tombol
     saveBtn.textContent = "Simpan Perubahan";
     saveBtn.disabled = false;
   });

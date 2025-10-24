@@ -1,60 +1,100 @@
 {% load static %}
-<nav class="w-full flex flex-col sticky top-0 z-50 bg-white">
-  <div class="w-full bg-white shadow-sm flex items-center px-4 sm:px-6 py-3 relative">
+<nav class="w-full sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100">
+  <div class="flex items-center justify-between px-4 sm:px-8 py-3">
 
     <!-- Logo -->
     <div class="flex items-center gap-3 flex-none">
-      <img src="{% static 'img/logoonly.png' %}" alt="SportSpace" class="h-8 w-8 rounded-md"/>
-      <a href="/" class="text-[#0C2D57] font-semibold text-lg md:block hidden">Sport Space</a>
-      <a href="/" class="text-[#0C2D57] text-lg font-semibold block md:hidden ml-2">Sport Space</a>
+      <img src="{% static 'img/logoonly.png' %}" alt="SportSpace" class="h-8 w-8 rounded-md shadow-sm">
+      <a href="/" class="text-[#0C2D57] font-extrabold text-xl tracking-tight hover:text-orange-500 transition">SportSpace</a>
     </div>
 
-    <!-- Menu Utama -->
-    <ul class="hidden md:flex flex-1 justify-center gap-12 text-[#0C2D57] font-semibold items-center">
+    <!-- Menu Desktop -->
+    <ul class="hidden md:flex flex-1 justify-center gap-8 text-[#0C2D57] font-semibold items-center">
       {% if user.is_authenticated %}
         {% if user.profile.role == 'admin' %}
-          <!-- Menu Admin -->
-          <li><a href="/dashboard-admin/" class="px-4 py-2 hover:text-[#6AAA28] {% if request.path == '/dashboard-admin/' %}font-bold{% endif %}">Dashboard Utama</a></li>
-          <li><a href="/dashboard-admin/lapangan/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/lapangan/' in request.path %}font-bold{% endif %}">Lapangan Padel</a></li>
-          <li><a href="/dashboard-admin/users/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/users/' in request.path %}font-bold{% endif %}">Manajemen Pengguna</a></li>
-          <li><a href="/dashboard-admin/bookings/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/dashboard-admin/bookings/' in request.path %}font-bold{% endif %}">Data Booking</a></li>
+          <li>
+            <a href="/dashboard-admin/"
+               class="px-4 py-2 rounded-full transition-all duration-200 hover:bg-orange-100 hover:text-orange-600 {% if request.path == '/dashboard-admin/' %}bg-orange-500 text-white shadow-sm{% endif %}">
+               Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="/dashboard-admin/lapangan/"
+               class="px-4 py-2 rounded-full transition-all duration-200 hover:bg-orange-100 hover:text-orange-600 {% if '/dashboard-admin/lapangan/' in request.path %}bg-orange-500 text-white shadow-sm{% endif %}">
+               Lapangan
+            </a>
+          </li>
+          <li>
+            <a href="/dashboard-admin/users/"
+               class="px-4 py-2 rounded-full transition-all duration-200 hover:bg-orange-100 hover:text-orange-600 {% if '/dashboard-admin/users/' in request.path %}bg-orange-500 text-white shadow-sm{% endif %}">
+               Pengguna
+            </a>
+          </li>
+          <li>
+            <a href="/dashboard-admin/bookings/"
+               class="px-4 py-2 rounded-full transition-all duration-200 hover:bg-orange-100 hover:text-orange-600 {% if '/dashboard-admin/bookings/' in request.path %}bg-orange-500 text-white shadow-sm{% endif %}">
+               Booking
+            </a>
+          </li>
         {% else %}
-          <!-- Menu Customer / Venue Owner -->
-          <li><a href="/home/" class="px-4 py-2 hover:text-[#6AAA28] {% if request.path == '/home/' %}font-bold{% endif %}">Sewa Lapangan</a></li>
-          <li><a href="/booking/my-bookings/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/booking/my-bookings/' in request.path %}font-bold{% endif %}">Bookingan Saya</a></li>
-          <li><a href="/matchmaking/" class="px-4 py-2 hover:text-[#6AAA28] transition-colors duration-200">Matchmaking</a></li>
-          <li><a href="{% url 'review:my_reviews' %}" class="px-4 py-2 hover:text-[#6AAA28] {% if '/review/my/' in request.path %}font-bold{% endif %}">My Reviews</a></li>
+          <li>
+            <a href="/home/"
+               class="px-4 py-2 rounded-full transition-all duration-200 hover:bg-orange-100 hover:text-orange-600 {% if request.path == '/home/' %}bg-orange-500 text-white shadow-sm{% endif %}">
+               Sewa Lapangan
+            </a>
+          </li>
+          <li>
+            <a href="/booking/my-bookings/"
+               class="px-4 py-2 rounded-full transition-all duration-200 hover:bg-orange-100 hover:text-orange-600 {% if '/booking/my-bookings/' in request.path %}bg-orange-500 text-white shadow-sm{% endif %}">
+               Booking Saya
+            </a>
+          </li>
+          <li>
+            <a href="/matchmaking/"
+               class="px-4 py-2 rounded-full transition-all duration-200 hover:bg-orange-100 hover:text-orange-600 {% if '/matchmaking/' in request.path %}bg-orange-500 text-white shadow-sm{% endif %}">
+               Matchmaking
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'review:my_reviews' %}"
+               class="px-4 py-2 rounded-full transition-all duration-200 hover:bg-orange-100 hover:text-orange-600 {% if '/review/my/' in request.path %}bg-orange-500 text-white shadow-sm{% endif %}">
+               My Reviews
+            </a>
+          </li>
         {% endif %}
       {% else %}
-        <!-- Menu untuk pengunjung -->
-        <li><a href="/home/" class="px-4 py-2 text-[#6AAA28] hover:opacity-80 {% if request.path == '/home/' %}font-bold{% endif %}">Home</a></li>
+        <li>
+          <a href="/home/"
+             class="px-4 py-2 rounded-full transition-all duration-200 hover:bg-orange-100 hover:text-orange-600 {% if request.path == '/home/' %}bg-orange-500 text-white shadow-sm{% endif %}">
+             Home
+          </a>
+        </li>
       {% endif %}
     </ul>
 
-    <!-- Profil & Tombol Login/Logout -->
-    <div class="hidden md:flex items-center gap-4 ml-auto">
+    <!-- Profile / Auth -->
+    <div class="hidden md:flex items-center gap-4">
       {% if user.is_authenticated %}
-        <a href="/accounts/profile/"
-          class="flex items-center gap-2 px-2 py-0.5 rounded-md hover:bg-[#0C2D57]/10 transition no-underline">
+        <a href="/accounts/profile/" class="flex items-center gap-2 hover:bg-[#0C2D57]/10 px-2 py-1 rounded-lg transition">
           {% if user.profile.photo_url %}
-            <img src="{{ user.profile.photo_url }}" alt="Foto Profil" class="h-7 w-7 rounded-full object-cover border border-[#0C2D57]/20">
+            <img src="{{ user.profile.photo_url }}" class="h-8 w-8 rounded-full object-cover border border-[#0C2D57]/20">
           {% else %}
-            <img src="{% static 'img/defaultprofile.png' %}" alt="Default" class="h-7 w-7 rounded-full object-cover border border-[#0C2D57]/20">
+            <img src="{% static 'img/defaultprofile.png' %}" class="h-8 w-8 rounded-full object-cover border border-[#0C2D57]/20">
           {% endif %}
-          <span class="text-sm font-medium text-[#0C2D57]">{{ user.username }}</span>
+          <span class="font-medium text-[#0C2D57]">{{ user.username }}</span>
         </a>
         <form action="/accounts/logout/" method="post" class="m-0">
           {% csrf_token %}
-          <button class="px-3 py-1 rounded-md bg-[#0C2D57] text-white font-semibold">Log Out</button>
+          <button class="bg-[#0C2D57] hover:bg-[#163970] px-4 py-1.5 text-white font-semibold rounded-lg shadow-sm transition">Log Out</button>
         </form>
       {% else %}
-        <a href="/login/" class="px-3 py-1 rounded-md bg-[#0C2D57] text-white font-semibold">Log in</a>
+        <a href="/login/" class="bg-[#0C2D57] hover:bg-[#163970] px-4 py-1.5 text-white font-semibold rounded-lg shadow-sm transition">Log In</a>
       {% endif %}
     </div>
 
-    <!-- Tombol toggle mobile -->
-    <button id="navbar-toggle" class="md:hidden focus:outline-none absolute right-4" aria-label="Open menu">
-      <svg class="w-7 h-7 text-[#0C2D57]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <!-- Mobile Toggle -->
+    <button id="navbar-toggle" class="md:hidden text-[#0C2D57] focus:outline-none hover:scale-110 transition" aria-label="Open menu">
+      <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16"/>
       </svg>
     </button>
@@ -62,111 +102,61 @@
 
   <!-- MOBILE NAV -->
   <div id="mobile-nav"
-    class="fixed left-0 top-0 w-full bg-white z-[101] flex-col md:hidden opacity-0 pointer-events-none transition-all duration-200"
-    style="transition-property: opacity,transform;">
-    <div class="flex items-center px-4 pt-4 pb-2">
-      <img src="{% static 'img/logoonly.png' %}" alt="SportSpace" class="h-8 w-8 rounded-md"/>
-      <a href="/" class="text-[#0C2D57] font-semibold text-lg ml-2">Sport Space</a>
-      <button id="mobile-nav-close" class="ml-auto px-2 py-2 text-[#0C2D57] focus:outline-none" aria-label="Close menu">
-        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+    class="fixed inset-0 bg-white/95 backdrop-blur-md md:hidden z-[101] flex flex-col transform -translate-y-full opacity-0 pointer-events-none transition-all duration-300">
+    <div class="flex items-center px-5 pt-5 pb-3 border-b border-gray-200">
+      <img src="{% static 'img/logoonly.png' %}" class="h-9 w-9 rounded-md">
+      <a href="/" class="text-[#0C2D57] font-bold text-xl ml-2">SportSpace</a>
+      <button id="mobile-nav-close" class="ml-auto p-2 text-[#0C2D57] hover:bg-gray-100 rounded-full transition" aria-label="Close menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
     </div>
 
-    <ul class="flex flex-col text-base w-full px-4 pb-4 gap-0">
+    <ul class="flex flex-col text-base px-6 pb-4 overflow-y-auto">
       {% if user.is_authenticated %}
         {% if user.profile.role == 'admin' %}
-          <!-- MOBILE ADMIN -->
-          <li><a href="/dashboard-admin/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Dashboard Utama</a></li>
-          <li><a href="/dashboard-admin/lapangan/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Lapangan Padel</a></li>
-          <li><a href="/dashboard-admin/users/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Manajemen Pengguna</a></li>
-          <li><a href="/dashboard-admin/bookings/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Data Booking</a></li>
+          <li><a href="/dashboard-admin/" class="block py-3 px-4 rounded-full hover:bg-orange-100 hover:text-orange-600 {% if request.path == '/dashboard-admin/' %}bg-orange-500 text-white{% endif %}">Dashboard Utama</a></li>
+          <li><a href="/dashboard-admin/lapangan/" class="block py-3 px-4 rounded-full hover:bg-orange-100 hover:text-orange-600 {% if '/dashboard-admin/lapangan/' in request.path %}bg-orange-500 text-white{% endif %}">Lapangan</a></li>
+          <li><a href="/dashboard-admin/users/" class="block py-3 px-4 rounded-full hover:bg-orange-100 hover:text-orange-600 {% if '/dashboard-admin/users/' in request.path %}bg-orange-500 text-white{% endif %}">Pengguna</a></li>
+          <li><a href="/dashboard-admin/bookings/" class="block py-3 px-4 rounded-full hover:bg-orange-100 hover:text-orange-600 {% if '/dashboard-admin/bookings/' in request.path %}bg-orange-500 text-white{% endif %}">Booking</a></li>
         {% else %}
-          <!-- MOBILE CUSTOMER -->
-          <li><a href="/home/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Sewa Lapangan</a></li>
-          <li><a href="/booking/my-bookings/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Bookingan Saya</a></li>
-          <li><a href="/matchmaking/" class="block py-3 text-[#0C2D57] hover:bg-gray-100">Matchmaking</a></li>
-          <li><a href="{% url 'review:my_reviews' %}" class="block py-3 text-[#0C2D57] hover:bg-gray-100">My Reviews</a></li>
+          <li><a href="/home/" class="block py-3 px-4 rounded-full hover:bg-orange-100 hover:text-orange-600 {% if request.path == '/home/' %}bg-orange-500 text-white{% endif %}">Sewa Lapangan</a></li>
+          <li><a href="/booking/my-bookings/" class="block py-3 px-4 rounded-full hover:bg-orange-100 hover:text-orange-600 {% if '/booking/my-bookings/' in request.path %}bg-orange-500 text-white{% endif %}">Bookingan Saya</a></li>
+          <li><a href="/matchmaking/" class="block py-3 px-4 rounded-full hover:bg-orange-100 hover:text-orange-600 {% if '/matchmaking/' in request.path %}bg-orange-500 text-white{% endif %}">Matchmaking</a></li>
+          <li><a href="{% url 'review:my_reviews' %}" class="block py-3 px-4 rounded-full hover:bg-orange-100 hover:text-orange-600 {% if '/review/my/' in request.path %}bg-orange-500 text-white{% endif %}">My Reviews</a></li>
         {% endif %}
-
-        <!-- Profile & Logout -->
-        <li class="flex items-center gap-3 px-3 py-3 border-t border-gray-200">
-          <a href="/accounts/profile/" class="flex items-center gap-3 no-underline">
-            {% if user.profile.photo_url %}
-              <img src="{{ user.profile.photo_url }}" class="h-9 w-9 rounded-full object-cover border border-[#0C2D57]/20">
-            {% else %}
-              <img src="{% static 'img/defaultprofile.png' %}" class="h-9 w-9 rounded-full object-cover border border-[#0C2D57]/20">
-            {% endif %}
-            <span class="text-[#0C2D57] font-semibold">{{ user.username }}</span>
-          </a>
-        </li>
-        <li>
-          <form action="/accounts/logout/" method="post" class="m-0">
-            {% csrf_token %}
-            <button class="w-full py-3 bg-[#0C2D57] text-white mt-2 font-semibold" type="submit">Log Out</button>
-          </form>
-        </li>
       {% else %}
-        <li><a href="/home/" class="block py-3 text-[#6AAA28] hover:bg-gray-100">Home</a></li>
-        <li><a href="/login/" class="block py-3 bg-[#0C2D57] text-white mt-2 text-center rounded-md font-semibold">Log in</a></li>
+        <li><a href="/home/" class="block py-3 px-4 rounded-full hover:bg-orange-100 hover:text-orange-600 {% if request.path == '/home/' %}bg-orange-500 text-white{% endif %}">Home</a></li>
+        <li><a href="/login/" class="block py-3 bg-[#0C2D57] text-white text-center rounded-lg font-semibold mt-2 hover:bg-[#163970] transition">Log In</a></li>
       {% endif %}
     </ul>
   </div>
 </nav>
 
 <script>
-  function closeMobileNav() {
-    const nav = document.getElementById('mobile-nav');
-    nav.classList.remove('opacity-100', 'pointer-events-auto');
-    nav.classList.add('opacity-0', 'pointer-events-none');
-  }
-  function openMobileNav() {
-    const nav = document.getElementById('mobile-nav');
-    nav.classList.remove('opacity-0', 'pointer-events-none');
-    nav.classList.add('opacity-100', 'pointer-events-auto');
-  }
   document.addEventListener('DOMContentLoaded', function() {
+    const mobileNav = document.getElementById('mobile-nav');
     const toggle = document.getElementById('navbar-toggle');
     const closeBtn = document.getElementById('mobile-nav-close');
-    const mobileNav = document.getElementById('mobile-nav');
-    if (toggle) {
-      toggle.addEventListener('click', function(e) {
-        e.stopPropagation();
-        mobileNav.classList.contains('opacity-100') ? closeMobileNav() : openMobileNav();
-      });
+
+    function openNav() {
+      mobileNav.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
+      mobileNav.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
     }
-    if (closeBtn) closeBtn.addEventListener('click', closeMobileNav);
-    document.addEventListener('click', function(e) {
-      if (mobileNav.classList.contains('opacity-100') && !mobileNav.contains(e.target) && e.target.id !== 'navbar-toggle') {
-        closeMobileNav();
-      }
+
+    function closeNav() {
+      mobileNav.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+      mobileNav.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+    }
+
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mobileNav.classList.contains('opacity-100') ? closeNav() : openNav();
     });
-    window.addEventListener('resize', function() {
-      if (window.innerWidth >= 768) closeMobileNav();
+    closeBtn.addEventListener('click', closeNav);
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 768) closeNav();
     });
   });
 </script>
-
-<style>
-  #mobile-nav {
-    top: 0;
-    left: 0;
-    right: 0;
-    min-width: 0;
-    border-radius: 0 !important;
-  }
-  #mobile-nav.opacity-0 {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(-24px) scale(0.99);
-  }
-  #mobile-nav.opacity-100 {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0) scale(1);
-  }
-  @media (min-width: 768px) {
-    #mobile-nav { display: none !important; }
-  }
-</style>
