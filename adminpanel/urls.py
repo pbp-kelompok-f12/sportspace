@@ -6,6 +6,7 @@ app_name = 'adminpanel'
 urlpatterns = [
     # Dashboard utama
     path('', views.dashboard, name='dashboard'),
+    path('create-admin/', views.create_admin_user, name='create_admin_user'),
 
     # Lapangan
     path('lapangan/', views.dashboard_lapangan_ajax, name='dashboard_lapangan'),
