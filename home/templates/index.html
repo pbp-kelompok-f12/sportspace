@@ -78,7 +78,7 @@
             const fields = item.fields;
             const thumbnailUrl = fields.thumbnail_url || 'https://via.placeholder.com/300x180.png?text=No+Image';
             return `
-                <div class="court-card">
+                <div class="court-card" onclick="goToBooking('${fields.nama}', '${fields.alamat}', '${thumbnailUrl}')">
                     <img src="${thumbnailUrl}" alt="${fields.nama}">
                     <div class="court-card-body">
                         <h5>${fields.nama}</h5>
@@ -113,6 +113,20 @@
 
     function showCreateModal() {
         loadAndShowModal("{% url 'home:get_lapangan_modal_add' %}");
+    }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 
     function editLapangan(id) {
@@ -211,6 +225,35 @@
     function scrollCarousel(carouselId, amount) { document.getElementById(carouselId).scrollLeft += amount; }
     function getCookie(name) {
         let cookieValue = null; if (document.cookie && document.cookie !== '') { const cookies = document.cookie.split(';'); for (let i = 0; i < cookies.length; i++) { const cookie = cookies[i].trim(); if (cookie.substring(0, name.length + 1) === (name + '=')) { cookieValue = decodeURIComponent(cookie.substring(name.length + 1)); break; } } } return cookieValue;
+    }
+    async function goToBooking(nama, alamat, thumbnailUrl) {
+        try {
+            // First, create or get the venue in the booking system
+            const response = await fetch('/booking/api/sync-venue/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    name: nama,
+                    location: alamat.split(',')[0].trim(), // Use first part as location
+                    address: alamat,
+                    image_url: thumbnailUrl
+                })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                // Redirect to booking page
+                window.location.href = `/booking/venue/${result.venue_id}/`;
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error syncing venue:', error);
+            alert('Gagal mengakses halaman booking');
+        }
     }
 </script>
 
