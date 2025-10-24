@@ -75,6 +75,7 @@
     </div>
     <ul class="flex flex-col text-base w-full px-4 pb-4 gap-0">
       {% if user.is_authenticated %}
+
         <li>
           <a href="/home/"
              class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 {% if request.path == '/home/' %}bg-gray-100 font-bold{% endif %}"
@@ -85,6 +86,22 @@
              class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 {% if '/booking/my-bookings/' in request.path %}bg-gray-100 font-bold{% endif %}"
              onclick="closeMobileNav()">Bookingan Saya</a>
         </li>
+
+        <!-- PROFILE -->
+        <li class="flex items-center gap-3 px-3 py-3 border-b border-gray-200">
+          <a href="/accounts/profile/" class="flex items-center gap-3 no-underline">
+            {% if user.profile.photo_url %}
+              <img src="{{ user.profile.photo_url }}" alt="Foto Profil"
+                   class="h-9 w-9 rounded-full object-cover border border-[#0C2D57]/20">
+            {% else %}
+              <img src="{% static 'img/defaultprofile.png' %}" alt="Default"
+                   class="h-9 w-9 rounded-full object-cover border border-[#0C2D57]/20">
+            {% endif %}
+            <span class="text-[#0C2D57] font-semibold text-base">{{ user.username }}</span>
+          </a>
+        </li>
+
+        
         <li>
           <form action="/accounts/logout/" method="post" class="m-0">
             {% csrf_token %}
