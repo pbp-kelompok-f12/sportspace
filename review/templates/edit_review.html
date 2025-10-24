@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="max-w-2xl mx-auto py-10">
+    <h2 class="text-2xl font-bold text-white mb-6">Edit Your Review</h2>
+
+    <div class="bg-white shadow-lg rounded-lg p-6">
+      {% if form.errors %}
+        <div class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4">{{ form.errors }}</div>
+      {% endif %}
+
+      <form method="POST" class="space-y-5">
+        {% csrf_token %}
+
+        <!-- Lapangan (readonly, user tidak bisa ganti) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Court</label>
+          <input type="text" value="{{ review.lapangan.nama }}" readonly class="w-full border rounded-md px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed" />
+        </div>
+
+        <!-- Comment -->
+        <div>
+          <label for="{{ form.comment.id_for_label }}" class="block text-sm font-medium text-gray-700">Your Comment</label>
+          {{ form.comment }}
+        </div>
+
+        <!-- Anonymous -->
+        <div class="flex items-center space-x-2">
+          {{ form.anonymous }}
+          <label for="{{ form.anonymous.id_for_label }}" class="text-gray-700">Post as Anonymous</label>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex justify-between items-center">
+          <a href="{% url 'review:my_reviews' %}" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-md">Cancel</a>
+          <button type="submit" class="bg-lime-600 hover:bg-lime-700 text-white px-5 py-2 rounded-md font-semibold">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
