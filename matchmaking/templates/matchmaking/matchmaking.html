@@ -3,12 +3,8 @@
 
 {% block content %}
 <div class="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] px-6 py-12 text-center">
-
-  <!-- Container utama -->
   <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-6xl w-full text-gray-800">
     <h1 class="text-3xl font-bold text-orange-500 mb-10">Matchmaking</h1>
-
-    <!-- ✅ Pesan sukses / error (auto hide 3 detik) -->
     {% if messages %}
       <div id="messages" class="mb-8 w-full max-w-3xl mx-auto space-y-2 transition-opacity duration-500">
         {% for message in messages %}
@@ -28,8 +24,6 @@
           </div>
         {% endfor %}
       </div>
-
-      <!-- Script agar pesan hilang otomatis -->
       <script>
         setTimeout(() => {
           const msgBox = document.getElementById('messages');
@@ -40,8 +34,6 @@
         }, 3000);
       </script>
     {% endif %}
-
-    <!-- Tombol buat match baru -->
     <div class="flex justify-center gap-8 mb-10">
       <button onclick="window.location.href='{% url 'matchmaking:one_vs_one' %}'"
               class="bg-[#002B4F] text-orange-400 font-semibold px-8 py-2 rounded-full hover:bg-[#004C8B] transition">
@@ -53,9 +45,7 @@
       </button>
     </div>
 
-    <!-- Daftar Match -->
     <h2 class="text-xl font-semibold text-gray-700 mb-4">Daftar Match yang Tersedia</h2>
-
     {% if matches %}
       <div class="overflow-x-auto">
         <table class="min-w-full text-left border-collapse border border-gray-200">
@@ -78,28 +68,24 @@
                 <td class="px-4 py-2 border border-gray-200">
                   <div class="flex flex-wrap gap-2 justify-center items-center">
 
-                    <!-- Jika user sudah terdaftar -->
                     {% if request.user in match.players.all %}
                       <span class="text-green-700 font-semibold">Anda telah mendaftar</span>
 
-                    <!-- Jika user belum terdaftar dan bukan creator -->
                     {% elif match.can_join and request.user != match.created_by %}
                       <form method="post" action="{% url 'matchmaking:join_match' match.id %}">
                         {% csrf_token %}
                         <button type="submit" 
-                                class="bg-green-600 text-white px-4 py-1 rounded-full hover:bg-green-700 transition">
+                            class="bg-green-600 text-white px-4 py-1 rounded-full hover:bg-green-700 transition">
                           Join
                         </button>
                       </form>
                     {% endif %}
 
-                    <!-- Tombol Detail -->
                     <button onclick="window.location.href='{% url 'matchmaking:match_detail' match.id %}'"
-                            class="bg-blue-600 text-white px-4 py-1 rounded-full hover:bg-blue-700 transition">
+                        class="bg-blue-600 text-white px-4 py-1 rounded-full hover:bg-blue-700 transition">
                       Details
                     </button>
 
-                    <!-- Tombol Delete (hanya creator) -->
                     {% if match.created_by == request.user %}
                       <form method="post" action="{% url 'matchmaking:delete_match' match.id %}">
                         {% csrf_token %}
