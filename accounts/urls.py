@@ -8,9 +8,6 @@ urlpatterns = [
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
     path('profile/', views.profile_view, name='profile'),
-    path('edit-profile/', views.edit_profile, name='edit_profile'),
+    # path('edit-profile/', views.edit_profile, name='edit_profile'),
     path('profile/json/', views.profile_json, name='profile_json'),
-
-    path('dashboard/admin/', views.admin_dashboard, name='admin_dashboard'),
-    path('dashboard/venue-owner/', views.venue_dashboard, name='venue_dashboard'),
 ]

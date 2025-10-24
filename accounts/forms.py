@@ -22,8 +22,8 @@ class SignUpForm(UserCreationForm):
 
         if commit:
             user.save()
-            role = self.cleaned_data['role']       # ambil role yang dipilih
-            Profile.objects.create(user=user, role=role)  # buat profil baru terhubung ke user
+            # role = self.cleaned_data['role']       # ambil role yang dipilih
+            # Profile.objects.create(user=user, role=role)  # buat profil baru terhubung ke user
         return user
     
 class ProfileForm(forms.ModelForm):
