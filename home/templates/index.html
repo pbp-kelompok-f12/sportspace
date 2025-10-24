@@ -78,14 +78,26 @@
         return lapanganList.map(item => {
             const fields = item.fields;
             const thumbnailUrl = fields.thumbnail_url || 'https://via.placeholder.com/300x180.png?text=No+Image';
+            const venueId = item.pk;
+
+            // Escape quotes for safe JavaScript function calls
+            const safeNama = fields.nama.replace(/'/g, "\\'");
+            const safeAlamat = fields.alamat.replace(/'/g, "\\'");
+            const safeThumbnailUrl = thumbnailUrl.replace(/'/g, "\\'");
+
             return `
-                <div class="court-card" onclick="goToBooking('${fields.nama}', '${fields.alamat}', '${thumbnailUrl}')">
+                <div class="court-card">
                     <img src="${thumbnailUrl}" alt="${fields.nama}">
                     <div class="court-card-body">
                         <h5>${fields.nama}</h5>
                         <p>${fields.alamat.split(' ').slice(0, 4).join(' ')}...</p>
                         ${fields.rating ? `<p class="text-muted">Rating: ${fields.rating} ⭐ (${fields.total_review || 0} reviews)</p>` : ''}
                         
+                        <!-- TOMBOL BARU DITAMBAHKAN DI SINI -->
+                        <div class="mt-2 d-flex justify-content-start gap-2">
+                            <button class="btn btn-sm btn-success" onclick="goToBooking('${safeNama}', '${safeAlamat}', '${safeThumbnailUrl}')">Book Now</button>
+                            <a href="/review/all/${venueId}/" class="btn btn-sm btn-outline-primary">Reviews</a>
+                        </div>
                     </div>
                 </div>`;
         }).join('');
