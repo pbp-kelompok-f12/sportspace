@@ -32,4 +32,5 @@ urlpatterns = [
     path('booking/', include('booking.urls')),
     path('main/', include('main.urls')),
     path('home/', include('home.urls')),
+    path('matchmaking/', include('matchmaking.urls')),
 ]

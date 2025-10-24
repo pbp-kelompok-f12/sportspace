@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] px-6 py-12">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full text-center">
+    <h1 class="text-2xl font-bold text-orange-500 mb-6">Buat Match 1 vs 1</h1>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit"
+              class="bg-[#002B4F] text-orange-400 font-semibold px-8 py-2 rounded-full hover:bg-[#004C8B] transition">
+        Buat Match
+      </button>
+    </form>
+    <button onclick="window.location.href='{% url 'matchmaking:home' %}'"
+            class="mt-4 text-gray-500 hover:text-gray-700">Kembali</button>
+  </div>
+</div>
+{% endblock %}

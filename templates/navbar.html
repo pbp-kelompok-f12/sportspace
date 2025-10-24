@@ -8,7 +8,6 @@
       <a href="/" class="text-[#0C2D57] text-lg font-semibold block md:hidden ml-2">Sport Space</a>
     </div>
 
-
     <ul class="hidden md:flex flex-1 justify-center gap-12 text-[#0C2D57] font-semibold items-center">
       {% if user.is_authenticated %}
         <li>
@@ -17,6 +16,12 @@
         <li>
           <a href="/booking/my-bookings/" class="px-4 py-2 hover:text-[#6AAA28] {% if '/booking/my-bookings/' in request.path %}font{% endif %}">Bookingan Saya</a>
         </li>
+        <!-- ✅ Matchmaking tombol hover-only -->
+        <li>
+          <a href="/matchmaking/" class="px-4 py-2 text-[#0C2D57] hover:text-[#6AAA28] transition-colors duration-200">
+            Matchmaking
+          </a>
+        </li>
       {% else %}
         <li>
           <a href="/home/" class="px-4 py-2 text-[#6AAA28] hover:opacity-80 {% if request.path == '/home/' %}font-bold{% endif %}">Home</a>
@@ -24,11 +29,8 @@
       {% endif %}
     </ul>
 
-
     <div class="hidden md:flex items-center gap-4 ml-auto">
       {% if user.is_authenticated %}
-
-        <!-- Profile Link -->
         <a href="/accounts/profile/"
           class="flex items-center gap-2 px-2 py-0.5 rounded-md hover:bg-[#0C2D57]/10 transition no-underline">
           {% if user.profile.photo_url %}
@@ -40,9 +42,6 @@
           {% endif %}
           <span class="text-sm font-medium text-[#0C2D57]">{{ user.username }}</span>
         </a>
-
-
-        <!-- Log Out Button -->
         <form action="/accounts/logout/" method="post" class="m-0">
           {% csrf_token %}
           <button class="px-3 py-1 rounded-md bg-[#0C2D57] text-white font-semibold">Log Out</button>
@@ -52,7 +51,6 @@
       {% endif %}
     </div>
 
-
     <button id="navbar-toggle" class="md:hidden focus:outline-none absolute right-4" aria-label="Open menu">
       <svg class="w-7 h-7 text-[#0C2D57]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16"/>
@@ -60,7 +58,7 @@
     </button>
   </div>
 
-
+  <!-- ✅ Mobile Nav -->
   <div id="mobile-nav"
     class="fixed left-0 top-0 w-full bg-white z-[101] flex-col md:hidden opacity-0 pointer-events-none transition-all duration-200"
     style="transition-property: opacity,transform;">
@@ -73,9 +71,9 @@
         </svg>
       </button>
     </div>
+
     <ul class="flex flex-col text-base w-full px-4 pb-4 gap-0">
       {% if user.is_authenticated %}
-
         <li>
           <a href="/home/"
              class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 {% if request.path == '/home/' %}bg-gray-100 font-bold{% endif %}"
@@ -86,8 +84,13 @@
              class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 {% if '/booking/my-bookings/' in request.path %}bg-gray-100 font-bold{% endif %}"
              onclick="closeMobileNav()">Bookingan Saya</a>
         </li>
+        <!-- ✅ Matchmaking mobile hover-only -->
+        <li>
+          <a href="/matchmaking/"
+             class="block w-full text-left py-3 font-semibold text-[#0C2D57] hover:bg-gray-100 transition-colors duration-200"
+             onclick="closeMobileNav()">Matchmaking</a>
+        </li>
 
-        <!-- PROFILE -->
         <li class="flex items-center gap-3 px-3 py-3 border-b border-gray-200">
           <a href="/accounts/profile/" class="flex items-center gap-3 no-underline">
             {% if user.profile.photo_url %}
@@ -101,7 +104,6 @@
           </a>
         </li>
 
-        
         <li>
           <form action="/accounts/logout/" method="post" class="m-0">
             {% csrf_token %}
@@ -192,3 +194,4 @@
     #mobile-nav { display: none !important; }
   }
 </style>
+
