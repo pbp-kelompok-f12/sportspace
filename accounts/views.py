@@ -43,33 +43,64 @@ def logout(request):
 # DASHBOARD PER ROLE
 @login_required
 def admin_dashboard(request):
-    return render(request, 'accounts/admin_dashboard.html')
+    return render(request, 'admin_dashboard.html')
 
 @login_required
 def venue_dashboard(request):
-    return render(request, 'accounts/venue_dashboard.html')
+    return render(request, 'venue_dashboard.html')
 
 @login_required
 def customer_dashboard(request):
-    return render(request, 'accounts/customer_dashboard.html')
+    return render(request, 'customer_dashboard.html')
 
-# PROFILE
 @login_required
 def profile_view(request):
-    return render(request, 'accounts/profile.html', {'profile': request.user.profile})
+    profile = request.user.profile
 
-# EDIT PROFILE
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            # kembalikan JSON response untuk AJAX
+            return JsonResponse({
+                'success': True,
+                'message': 'Profil berhasil diperbarui!',
+                'email': profile.email,
+                'phone': profile.phone,
+                'address': profile.address,
+                'photo_url': profile.photo_url,
+            })
+        else:
+            # kalau form invalid, kirim error ke JS
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+    else:
+        form = ProfileForm(instance=profile)
+        return render(request, 'profile.html', {'profile': profile, 'form': form})
+
 @login_required
 def edit_profile(request):
+    # Ambil profil user yang sedang login
     profile = request.user.profile
+
+    # Jika email di Profile masih kosong, isi dari User.email
+    if not profile.email:
+        profile.email = request.user.email
+
     if request.method == 'POST':
+        # Ambil data POST dan isi ke instance profile yang sudah ada
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
-            return redirect('accounts:profile')
+            return redirect('accounts:profile') 
     else:
+        # isi form dengan data lama
         form = ProfileForm(instance=profile)
-    return render(request, 'accounts/edit_profile.html', {'form': form})
+
+    context = {'form': form}
+    return render(request, 'edit_profile.html', context)
+
+
 
 # JSON PROFILE (untuk AJAX)
 @login_required

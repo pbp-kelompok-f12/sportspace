@@ -27,6 +27,22 @@
 
     <div class="hidden md:flex items-center gap-4 ml-auto">
       {% if user.is_authenticated %}
+
+        <!-- Profile Link -->
+        <a href="/accounts/profile/"
+          class="flex items-center gap-2 px-2 py-0.5 rounded-md hover:bg-[#0C2D57]/10 transition no-underline">
+          {% if user.profile.photo_url %}
+            <img src="{{ user.profile.photo_url }}" alt="Foto Profil"
+                class="h-7 w-7 rounded-full object-cover border border-[#0C2D57]/20">
+          {% else %}
+            <img src="{% static 'img/defaultprofile.png' %}" alt="Default"
+                class="h-7 w-7 rounded-full object-cover border border-[#0C2D57]/20">
+          {% endif %}
+          <span class="text-sm font-medium text-[#0C2D57]">{{ user.username }}</span>
+        </a>
+
+
+        <!-- Log Out Button -->
         <form action="/accounts/logout/" method="post" class="m-0">
           {% csrf_token %}
           <button class="px-3 py-1 rounded-md bg-[#0C2D57] text-white font-semibold">Log Out</button>

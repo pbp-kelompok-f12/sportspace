@@ -1,19 +1,171 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
-<div class="container mt-4">
-  <div class="card p-4">
-    <h3 class="text-center">Your Profile</h3>
-    <div id="profile-info">
-      <p><strong>Username:</strong> {{ profile.user.username }}</p>
-      <p><strong>Email:</strong> {{ profile.user.email }}</p>
-      <p><strong>Role:</strong> {{ profile.get_role_display }}</p>
-      <p><strong>Phone:</strong> {{ profile.phone }}</p>
-      <p><strong>Address:</strong> {{ profile.address }}</p>
-      {% if profile.photo %}
-        <img src="{{ profile.photo.url }}" class="img-thumbnail mt-2" width="150">
+<div class="flex flex-col items-center mt-10">
+  <div class="bg-white/90 backdrop-blur-md shadow-md rounded-xl p-8 w-full max-w-lg text-center relative">
+    <h2 class="text-2xl font-semibold text-[#0C2D57] mb-6">Profil Saya</h2>
+
+    <!-- Foto Profil -->
+    <div class="flex flex-col items-center mb-6">
+      {% if profile.photo_url %}
+        <img id="profile-photo" src="{{ profile.photo_url }}" alt="Foto Profil"
+             class="h-24 w-24 rounded-full object-cover shadow-md border border-[#0C2D57]/30 mb-3">
+      {% else %}
+        <img id="profile-photo" src="{% static 'img/defaultprofile.png' %}" alt="Default Foto"
+             class="h-24 w-24 rounded-full object-cover shadow-md border border-[#0C2D57]/30 mb-3">
       {% endif %}
+      <p class="text-lg font-semibold text-[#0C2D57]">{{ request.user.username }}</p>
+      <p class="text-sm text-gray-500 capitalize">{{ profile.role }}</p>
     </div>
-    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary mt-3">Edit Profile</a>
+
+    <!-- Informasi Profil -->
+    <div class="overflow-x-auto mt-4">
+      <table class="w-full border-collapse text-left">
+        <tbody>
+          <tr class="border-b border-[#0C2D57]/20">
+            <td class="py-2 w-1/3 font-semibold text-[#F87E18]">Email</td>
+            <td id="profile-email" class="py-2 text-[#0C2D57] font-medium">{{ profile.email|default:"-" }}</td>
+          </tr>
+          <tr class="border-b border-[#0C2D57]/20">
+            <td class="py-2 font-semibold text-[#F87E18]">Nomor Telepon</td>
+            <td id="profile-phone" class="py-2 text-[#0C2D57] font-medium">{{ profile.phone|default:"-" }}</td>
+          </tr>
+          <tr class="border-b border-[#0C2D57]/20">
+            <td class="py-2 font-semibold text-[#F87E18]">Alamat</td>
+            <td id="profile-address" class="py-2 text-[#0C2D57] font-medium">{{ profile.address|default:"-" }}</td>
+          </tr>
+          <tr>
+            <td class="py-2 font-semibold text-[#F87E18]">Peran</td>
+            <td class="py-2 text-[#0C2D57] font-medium capitalize">{{ profile.role }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tombol Edit -->
+    <div class="mt-6">
+      <button id="edit-btn"
+              class="inline-block bg-[#0C2D57] hover:bg-[#09396a] text-white px-6 py-2 rounded-lg transition font-semibold">
+        Ubah Profil
+      </button>
+      <div id="notif" class="hidden mt-4 text-green-600 font-medium"></div>
+    </div>
   </div>
 </div>
+
+<!-- Modal Edit Profil -->
+<div id="edit-modal"
+     class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50 flex items-center justify-center">
+  <div id="modal-content"
+       class="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl relative transform transition-all duration-300 scale-95 opacity-0">
+    <button id="close-modal"
+            class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl">✕</button>
+    <h3 class="text-xl font-semibold text-[#0C2D57] mb-4 text-center">Edit Profil</h3>
+
+    <form id="edit-form" method="post" class="space-y-4 text-left">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div>
+        <label class="block font-semibold text-[#F87E18] mb-1">Email</label>
+        {{ form.email }}
+      </div>
+      <div>
+        <label class="block font-semibold text-[#F87E18] mb-1">Nomor Telepon</label>
+        {{ form.phone }}
+      </div>
+      <div>
+        <label class="block font-semibold text-[#F87E18] mb-1">Alamat</label>
+        {{ form.address }}
+      </div>
+      <div>
+        <label class="block font-semibold text-[#F87E18] mb-1">Link Foto Profil</label>
+        {{ form.photo_url }}
+      </div>
+
+      <button type="submit"
+        id="save-btn"
+        class="w-full bg-[#0C2D57] hover:bg-[#09396a] text-white font-semibold py-2 rounded-lg transition">
+        Simpan Perubahan
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Script -->
+<script>
+  const modal = document.getElementById('edit-modal');
+  const modalContent = document.getElementById('modal-content');
+  const openBtn = document.getElementById('edit-btn');
+  const closeBtn = document.getElementById('close-modal');
+  const form = document.getElementById('edit-form');
+  const notif = document.getElementById('notif');
+  const saveBtn = document.getElementById('save-btn');
+
+  // Buka modal dengan animasi
+  openBtn.addEventListener('click', () => {
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modalContent.classList.remove('scale-95', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+  });
+
+  // Tutup modal dengan animasi
+  closeBtn.addEventListener('click', () => {
+    modalContent.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => modal.classList.add('hidden'), 150);
+  });
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modalContent.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => modal.classList.add('hidden'), 150);
+    }
+  });
+
+  // Submit via AJAX (fetch)
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Tombol loading
+    saveBtn.textContent = "Menyimpan...";
+    saveBtn.disabled = true;
+
+    const formData = new FormData(form);
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    const response = await fetch("", {
+      method: "POST",
+      headers: { "X-CSRFToken": csrfToken },
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      document.getElementById('profile-email').textContent = data.email || "-";
+      document.getElementById('profile-phone').textContent = data.phone || "-";
+      document.getElementById('profile-address').textContent = data.address || "-";
+      if (data.photo_url) {
+        document.getElementById('profile-photo').src = data.photo_url;
+      }
+
+      notif.textContent = data.message;
+      notif.classList.remove('hidden', 'text-red-600');
+      notif.classList.add('text-green-600');
+
+      modalContent.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => modal.classList.add('hidden'), 150);
+    } else {
+      notif.textContent = "Terjadi kesalahan saat menyimpan data.";
+      notif.classList.remove('hidden', 'text-green-600');
+      notif.classList.add('text-red-600');
+    }
+
+    // Kembalikan tombol
+    saveBtn.textContent = "Simpan Perubahan";
+    saveBtn.disabled = false;
+  });
+</script>
 {% endblock %}
