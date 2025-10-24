@@ -30,7 +30,7 @@ def login(request):
             user = form.get_user()
             auth_login(request, user)
             role = user.profile.role
-            print("ROLE:", user.profile.role)
+
             if role == 'admin':
                 return redirect('adminpanel:dashboard')
             else:
@@ -45,18 +45,10 @@ def logout(request):
     auth_logout(request)
     return redirect('accounts:login')
 
-# DASHBOARD PER ROLE
-@login_required
-def admin_dashboard(request):
-    return render(request, 'admin_dashboard.html')
-
-@login_required
-def venue_dashboard(request):
-    return render(request, 'venue_dashboard.html')
-
-@login_required
-def customer_dashboard(request):
-    return render(request, 'customer_dashboard.html')
+# # DASHBOARD PER ROLE
+# @login_required
+# def admin_dashboard(request):
+#     return render(request, 'admin_dashboard.html')
 
 @login_required
 def profile_view(request):
@@ -87,28 +79,27 @@ def profile_view(request):
         })
 
 
-@login_required
-def edit_profile(request):
-    # Ambil profil user yang sedang login
-    profile = request.user.profile
+# @login_required
+# def edit_profile(request):
+#     # Ambil profil user yang sedang login
+#     profile = request.user.profile
 
-    # Jika email di Profile masih kosong, isi dari User.email
-    if not profile.email:
-        profile.email = request.user.email
+#     # Jika email di Profile masih kosong, isi dari User.email
+#     if not profile.email:
+#         profile.email = request.user.email
 
-    if request.method == 'POST':
-        # Ambil data POST dan isi ke instance profile yang sudah ada
-        form = ProfileForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
-            return redirect('accounts:profile') 
-    else:
-        # isi form dengan data lama
-        form = ProfileForm(instance=profile)
+#     if request.method == 'POST':
+#         # Ambil data POST dan isi ke instance profile yang sudah ada
+#         form = ProfileForm(request.POST, request.FILES, instance=profile)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('accounts:profile') 
+#     else:
+#         # isi form dengan data lama
+#         form = ProfileForm(instance=profile)
 
-    context = {'form': form}
-    return render(request, 'edit_profile.html', context)
-
+#     context = {'form': form}
+#     return render(request, 'edit_profile.html', context)
 
 
 # JSON PROFILE (untuk AJAX)
