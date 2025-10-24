@@ -139,23 +139,35 @@ def create_booking(request):
         if existing_booking:
             return JsonResponse({'success': False, 'message': 'This time slot is already booked'})
         
-        # Create booking
-        booking = Booking.objects.create(
-            user=request.user,
-            venue=venue,
-            booking_date=booking_date,
-            start_time=start_time,
-            end_time=end_time,
-            customer_name=customer_name,
-            customer_email=customer_email,
-            customer_phone=customer_phone
-        )
+        # Create form instance with data
+        form_data = {
+            'customer_name': customer_name,
+            'customer_email': customer_email,
+            'customer_phone': customer_phone,
+            'booking_date': booking_date,
+            'start_time': start_time,
+            'end_time': end_time,
+        }
         
-        return JsonResponse({
-            'success': True, 
-            'message': 'Booking Created!',
-            'booking_id': str(booking.id)
-        })
+        form = BookingForm(data=form_data)
+        
+        if form.is_valid():
+            booking = form.save(commit=False)
+            booking.user = request.user
+            booking.venue = venue
+            booking.save()
+            
+            return JsonResponse({
+                'success': True, 
+                'message': 'Booking Created!',
+                'booking_id': str(booking.id)
+            })
+        else:
+            # Return form errors
+            errors = {}
+            for field, field_errors in form.errors.items():
+                errors[field] = field_errors[0] if field_errors else ''
+            return JsonResponse({'success': False, 'message': 'Validation failed', 'errors': errors})
         
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
@@ -166,17 +178,34 @@ def create_booking(request):
 def update_booking(request, booking_id):
     try:
         booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+    except:
+        return JsonResponse({'success': False, 'message': 'Booking not found'}, status=404)
+    
+    try:
         data = json.loads(request.body)
         
-        booking.customer_name = data.get('customer_name', booking.customer_name)
-        booking.customer_email = data.get('customer_email', booking.customer_email)
-        booking.customer_phone = data.get('customer_phone', booking.customer_phone)
-        booking.save()
+        # Create form instance with current booking data and new data
+        form_data = {
+            'customer_name': data.get('customer_name', booking.customer_name),
+            'customer_email': data.get('customer_email', booking.customer_email),
+            'customer_phone': data.get('customer_phone', booking.customer_phone),
+        }
         
-        return JsonResponse({
-            'success': True,
-            'message': 'Booking Updated!'
-        })
+        form = BookingUpdateForm(data=form_data, instance=booking)
+        
+        if form.is_valid():
+            form.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Booking Updated!'
+            })
+        else:
+            # Return form errors
+            errors = {}
+            for field, field_errors in form.errors.items():
+                errors[field] = field_errors[0] if field_errors else ''
+            return JsonResponse({'success': False, 'message': 'Validation failed', 'errors': errors})
         
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
@@ -187,6 +216,10 @@ def update_booking(request, booking_id):
 def delete_booking(request, booking_id):
     try:
         booking = get_object_or_404(Booking, id=booking_id, user=request.user)
+    except:
+        return JsonResponse({'success': False, 'message': 'Booking not found'}, status=404)
+    
+    try:
         booking.delete()
         
         return JsonResponse({

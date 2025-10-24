@@ -2,12 +2,12 @@ from django.forms import ModelForm
 from .models import Venue
 #from .models import Booking
 
-class VenueForm(ModelForm):
-    class Meta:
-        model = Venue
-        fields = ['name', 'contact', 'address',
-                  'description', 'facilities', 'photo_url',
-                  'price_per_hour', 'is_available']
+# class VenueForm(ModelForm):
+#     class Meta:
+#         model = Venue
+#         fields = ['name', 'contact', 'address',
+#                   'description', 'facilities', 'photo_url',
+#                   'price_per_hour', 'is_available']
         
 #class BookingForm(ModelForm):
  #   class Meta:

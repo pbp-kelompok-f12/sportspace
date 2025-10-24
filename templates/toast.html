@@ -1,47 +1,109 @@
 {% load static %}
 <!-- Toast Container -->
-<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+<div id="toast-container" class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 items-end pointer-events-none"></div>
+
+<style>
+  /* Style utama toast */
+  .toast {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-width: 280px;
+    max-width: 380px;
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    color: white;
+    font-weight: 500;
+    pointer-events: auto;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border-left: 6px solid;
+    opacity: 0;
+    transform: translateY(40%) scale(0.95);
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .toast.hide {
+    opacity: 0;
+    transform: translateY(50%) scale(0.9);
+  }
+
+  /* Warna dengan tema SportSpace */
+  .toast-success {
+    background: linear-gradient(135deg, #F87E18, #f8a74d);
+    border-color: #F87E18;
+  }
+
+  .toast-error {
+    background: linear-gradient(135deg, #0C2D57, #164e8b);
+    border-color: #0C2D57;
+  }
+
+  .toast-info {
+    background: linear-gradient(135deg, #09396A, #1668b4);
+    border-color: #09396A;
+  }
+
+  .toast-default {
+    background: rgba(71, 85, 105, 0.9);
+    border-color: #64748B;
+  }
+
+  .toast button {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .toast button:hover {
+    opacity: 0.7;
+  }
+</style>
 
 <script>
-// Toast notification system
-function showToast(message, type = 'success', duration = 5000) {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    
-    const toast = document.createElement('div');
-    toast.className = `px-6 py-4 rounded-lg shadow-lg text-white transform transition-all duration-300 translate-x-full opacity-0 ${
-        type === 'success' ? 'bg-green-500' : 
-        type === 'error' ? 'bg-red-500' : 
-        type === 'info' ? 'bg-blue-500' : 'bg-gray-500'
-    }`;
-    
-    toast.innerHTML = `
-        <div class="flex items-center justify-between">
-            <span>${message}</span>
-            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-    `;
-    
-    container.appendChild(toast);
-    
-    // Animate in
-    setTimeout(() => {
-        toast.classList.remove('translate-x-full', 'opacity-0');
-        toast.classList.add('translate-x-0', 'opacity-100');
-    }, 100);
-    
-    // Auto remove
-    setTimeout(() => {
-        toast.classList.add('translate-x-full', 'opacity-0');
-        setTimeout(() => {
-            if (toast.parentElement) {
-                toast.remove();
-            }
-        }, 300);
-    }, duration);
+function showToast(message, type = 'success', duration = 4000) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.classList.add('toast');
+  toast.classList.add(
+    type === 'success'
+      ? 'toast-success'
+      : type === 'error'
+      ? 'toast-error'
+      : type === 'info'
+      ? 'toast-info'
+      : 'toast-default'
+  );
+
+  toast.innerHTML = `
+    <span>${message}</span>
+    <button onclick="this.closest('.toast').remove()" aria-label="Close">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+  `;
+
+  container.appendChild(toast);
+
+  // Pastikan animasi terlihat
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  // Hilang otomatis
+  setTimeout(() => {
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 500);
+  }, duration);
 }
 </script>

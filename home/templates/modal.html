@@ -1,0 +1,56 @@
+<!-- home/templates/modal.html -->
+<div class="modal fade" id="lapanganModal" tabindex="-1" aria-labelledby="lapanganModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">{{ title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="lapanganForm" method="POST" onsubmit="return false;">
+                    <input type="hidden" id="lapanganId" value="{{ lapangan.pk|default:'' }}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.place_id.id_for_label }}" class="form-label">{{ form.place_id.label }} <span class="text-danger">*</span></label>
+                        {{ form.place_id }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.nama.id_for_label }}" class="form-label">{{ form.nama.label }} <span class="text-danger">*</span></label>
+                        {{ form.nama }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.alamat.id_for_label }}" class="form-label">{{ form.alamat.label }} <span class="text-danger">*</span></label>
+                        {{ form.alamat }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.rating.id_for_label }}" class="form-label">{{ form.rating.label }}</label>
+                            {{ form.rating }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.total_review.id_for_label }}" class="form-label">{{ form.total_review.label }}</label>
+                            {{ form.total_review }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.thumbnail_url.id_for_label }}" class="form-label">{{ form.thumbnail_url.label }}</label>
+                        {{ form.thumbnail_url }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">{{ form.notes.label }}</label>
+                        {{ form.notes }}
+                    </div>
+                    <div class="form-check mb-4">
+                        {{ form.is_featured }}
+                        <label class="form-check-label" for="{{ form.is_featured.id_for_label }}">{{ form.is_featured.label }}</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveLapangan()" id="saveButtonText">{{ submit_text }}</button>
+            </div>
+        </div>
+    </div>
+</div>

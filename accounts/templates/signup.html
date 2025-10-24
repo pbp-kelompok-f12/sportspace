@@ -1,32 +1,117 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load widget_tweaks %}
+
 {% block content %}
-<section class="w-full flex items-stretch min-h-[calc(100vh-64px)]">
-  <div class="hidden md:flex w-2/5 bg-gradient-to-b from-orange-500 to-orange-300 items-center justify-center p-8">
-    <img src="{% static 'img/logowtext.png' %}" class="rounded-2xl shadow-xl" alt="SportSpace"/>
+<section class="w-full flex items-stretch flex-grow overflow-hidden">
+  <!-- sisi oranye -->
+  <div class="hidden md:flex w-2/5 bg-gradient-to-b from-orange-500 to-orange-300 
+              items-center justify-center p-8 min-h-full animate-slide-in">
+    <img src="{% static 'img/logowtext.png' %}" 
+         class="rounded-2xl shadow-xl transform -rotate-6 scale-90 transition-transform duration-1000 ease-out animate-logo-spin" 
+         alt="SportSpace"/>
   </div>
+
+  <!-- sisi form -->
   <div class="flex-1 flex items-center justify-center py-16">
-    <div class="bg-white text-[#0C2D57] rounded-2xl p-10 w-full max-w-xl shadow-xl">
-      <h1 class="text-4xl font-extrabold text-center text-orange-500 mb-8">Sign Up</h1>
-      <form method="post" class="space-y-5">
+    <div class="bg-white/90 text-[#0C2D57] rounded-2xl p-10 w-full max-w-xl shadow-xl backdrop-blur-sm animate-fade-up">
+      <h1 class="text-4xl font-extrabold text-center text-orange-500 mb-8 animate-fade-in-delay">
+        Sign Up
+      </h1>
+      <form method="post" class="space-y-5 animate-fade-in-delay2">
         {% csrf_token %}
         {{ form.non_field_errors }}
 
         {% for field in form %}
           <div>
             <label class="block text-sm font-semibold mb-1">{{ field.label }}</label>
-            {% render_field field class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400" %}
+            {% render_field field class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-lime-400 transition duration-300" %}
             {% if field.errors %}
               <p class="text-red-500 text-sm mt-1">{{ field.errors|striptags }}</p>
             {% endif %}
           </div>
         {% endfor %}
 
-        <button class="w-full bg-lime-500 hover:bg-lime-600 text-white font-semibold py-3 rounded-full">Create Account</button>
+        <button class="w-full bg-lime-500 hover:bg-lime-600 hover:shadow-lg hover:scale-[1.02] text-white font-semibold py-3 rounded-full transition-all duration-300 ease-out">
+          Create Account
+        </button>
       </form>
-      <p class="text-center mt-5">Already have an account? <a class="text-blue-600 font-semibold" href="{% url 'login' %}">Log In</a></p>
+      <p class="text-center mt-5 animate-fade-in-delay3">
+        Already have an account? 
+        <a class="text-blue-600 font-semibold hover:underline transition duration-300" href="{% url 'login' %}">
+          Log In
+        </a>
+      </p>
     </div>
   </div>
 </section>
+
+<style>
+  /* --- Sisi oranye masuk dari kiri --- */
+  @keyframes slideIn {
+    0% {
+      opacity: 0;
+      transform: translateX(-100%);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  .animate-slide-in {
+    animation: slideIn 1s ease-out forwards;
+  }
+
+  /* --- Logo berputar halus --- */
+  @keyframes logoSpin {
+    0% {
+      transform: rotate(-20deg) scale(0.8);
+      opacity: 0;
+    }
+    50% {
+      transform: rotate(10deg) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: rotate(-6deg) scale(0.9);
+      opacity: 1;
+    }
+  }
+  .animate-logo-spin {
+    animation: logoSpin 1.2s ease-out forwards;
+  }
+
+  /* --- Card form naik perlahan --- */
+  @keyframes fadeUp {
+    0% {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-up {
+    animation: fadeUp 1s ease-out forwards;
+  }
+
+  /* --- Fade-in bertahap --- */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in-delay {
+    animation: fadeIn 1.2s ease-out 0.4s forwards;
+    opacity: 0;
+  }
+  .animate-fade-in-delay2 {
+    animation: fadeIn 1.2s ease-out 0.8s forwards;
+    opacity: 0;
+  }
+  .animate-fade-in-delay3 {
+    animation: fadeIn 1.2s ease-out 1.2s forwards;
+    opacity: 0;
+  }
+</style>
 {% endblock %}

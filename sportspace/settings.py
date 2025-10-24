@@ -96,6 +96,7 @@ GOOGLE_MAPS_API_KEY = 'AIzaSyB-EBEHoKCnM1BkHC8eD1F3zwbV7uB86-c'
 WSGI_APPLICATION = 'sportspace.wsgi.application'
 
 
+
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
@@ -143,6 +144,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -170,7 +172,7 @@ else:
     STATIC_ROOT = BASE_DIR / 'static' # merujuk ke /static root project pada mode production
 
 # Auth redirects
-LOGIN_URL = '/login/'
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/home/'
 LOGOUT_REDIRECT_URL = '/'
 

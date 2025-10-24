@@ -6,12 +6,12 @@
     <form method="post">
       {% csrf_token %}
       <button type="submit"
-              class="bg-[#002B4F] text-orange-400 font-semibold px-8 py-2 rounded-full hover:bg-[#004C8B] transition">
+        class="bg-[#002B4F] text-orange-400 font-semibold px-8 py-2 rounded-full hover:bg-[#004C8B] transition">
         Buat Match
       </button>
     </form>
     <button onclick="window.location.href='{% url 'matchmaking:home' %}'"
-            class="mt-4 text-gray-500 hover:text-gray-700">Kembali</button>
+      class="mt-4 text-gray-500 hover:text-gray-700">Kembali</button>
   </div>
 </div>
 {% endblock %}

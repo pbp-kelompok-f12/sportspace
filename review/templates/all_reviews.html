@@ -1,19 +1,155 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+{% load review_extras %}
+{% load rating_extras %}
+
 {% block content %}
-<div class="container py-6">
-  <h2>All Reviews for {{ lapangan.nama }}</h2>
+  <div class="max-w-4xl mx-auto py-10 px-4 lg:px-0">
+    <h2 class="text-3xl font-bold text-white mb-6">Reviews for {{ lapangan.nama }}</h2>
 
-  {% for r in reviews %}
-    <div class="card p-3 mb-3">
-      <p><strong>{{ r.display_username }}</strong></p>
-      <p>{{ r.comment }}</p>
-      <p>⭐ {{ r.rating }}</p>
-      <small>{{ r.created_at|date:"M d, Y H:i" }}</small>
-    </div>
-  {% empty %}
-    <p>No reviews yet.</p>
-  {% endfor %}
+    {% if reviews %}
+      <!-- kalau sudah ada review, tampilkan list -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for r in reviews %}
+          <div class="bg-white rounded-lg shadow overflow-hidden flex flex-col">
+            <img src="{{ r.lapangan.thumbnail_url|default:'/static/img/no-photo-venue.png' }}" alt="{{ r.lapangan.nama }}" class="h-40 w-full object-cover" />
 
-  <a href="{% url 'review:add_review' lapangan.id %}" class="btn btn-success mt-4">Add Review</a>
-</div>
+            <div class="p-4 flex flex-col flex-grow">
+              <h3 class="text-lg font-bold text-blue-700 mb-1">{{ r.lapangan.nama }}</h3>
+
+              <!-- User Info -->
+              <div class="flex items-center mb-2">
+                {% if r.anonymous %}
+                  <img src="{% static 'img/defaultprofile.png' %}" class="h-8 w-8 rounded-full blur-sm" alt="Anonymous" />
+                {% else %}
+                  <img src="{{ r.user.profile.photo_url|default:'/static/img/defaultprofile.png' }}" class="h-8 w-8 rounded-full object-cover" alt="{{ r.user.username }}" />
+                {% endif %}
+                <div class="ml-2 text-sm">
+                  <p class="font-semibold text-gray-800">
+                    {% if r.anonymous %}
+                      {{ r.user.username|mask_username }}
+                    {% else %}
+                      {{ r.user.username }}
+                    {% endif %}
+                  </p>
+                  <p class="text-gray-500">Reviewed at {{ r.created_at|date:'M d, Y H:i' }}</p>
+                </div>
+              </div>
+
+              <!-- Rating -->
+              <div class="flex items-center mb-2">
+                {% for star in r.rating|star_types %}
+                  {% if star == 'full' %}
+                    <span class="text-yellow-400">★</span>
+                  {% elif star == 'half' %}
+                    <span class="relative text-gray-300">★<span class="absolute left-0 top-0 w-1/2 overflow-hidden text-yellow-400">★</span></span>
+                  {% else %}
+                    <span class="text-gray-300">★</span>
+                  {% endif %}
+                {% endfor %}
+                <span class="ml-2 text-sm text-gray-600">{{ r.rating }}/5</span>
+              </div>
+
+              <p class="text-gray-700 flex-grow">{{ r.comment }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="bg-white rounded-lg shadow-lg p-8 text-center text-gray-800 max-w-xl mx-auto">
+        <img src="{% static 'img/no-reviews1.png' %}" alt="No Reviews" class="h-32 mx-auto mb-6 opacity-80" />
+        <h3 class="text-xl font-semibold mb-2">Belum ada review</h3>
+        <p class="text-gray-600 mb-6">
+          Jadilah yang pertama mereview
+          <span class="font-bold text-blue-700">{{ lapangan.nama }}</span>!
+        </p>
+
+        <form method="POST" class="space-y-5">
+          {% csrf_token %}
+          <input type="hidden" name="lapangan" value="{{ lapangan.id }}" />
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Your Comment</label>
+            {{ form.comment }}
+          </div>
+
+          <div class="flex items-center justify-center space-x-2">
+            {{ form.anonymous }}
+            <label for="{{ form.anonymous.id_for_label }}" class="text-gray-700">Post as Anonymous</label>
+          </div>
+
+          <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg font-semibold">Submit First Review</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      let currentReviewId = null
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+    
+      function openEditModal(id, comment, anonymous) {
+        currentReviewId = id
+        document.getElementById('editComment').value = comment
+        document.getElementById('editAnonymous').checked = anonymous === 'True' || anonymous === true
+        document.getElementById('editModal').classList.remove('hidden')
+      }
+      function closeEditModal() {
+        document.getElementById('editModal').classList.add('hidden')
+      }
+      function openDeleteModal(id) {
+        currentReviewId = id
+        document.getElementById('deleteModal').classList.remove('hidden')
+      }
+      function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden')
+      }
+    
+      // tombol edit/delete
+      document.querySelectorAll('.edit-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          openEditModal(btn.dataset.id, btn.dataset.comment, btn.dataset.anonymous)
+        })
+      })
+      document.querySelectorAll('.delete-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          openDeleteModal(btn.dataset.id)
+        })
+      })
+    
+      // close modal
+      document.getElementById('closeEditBtn').addEventListener('click', closeEditModal)
+      document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal)
+      document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal)
+    
+      // submit edit
+      document.getElementById('editReviewForm').addEventListener('submit', async (e) => {
+        e.preventDefault()
+        const comment = document.getElementById('editComment').value
+        const anonymous = document.getElementById('editAnonymous').checked
+    
+        const res = await fetch(`/review/edit/${currentReviewId}/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ comment, anonymous })
+        })
+        if (res.ok) location.reload()
+      })
+    
+      // confirm delete
+      document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+        const res = await fetch(`/review/delete/${currentReviewId}/`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrftoken }
+        })
+        if (res.ok) location.reload()
+      })
+    })
+  </script>
 {% endblock %}
