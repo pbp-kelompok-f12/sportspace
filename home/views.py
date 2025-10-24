@@ -303,4 +303,4 @@ def detail_lapangan(request, id):
         'lapangan': lapangan,
         'reviews': reviews,
     }
-    return render(request, 'home/detail_lapangan.html', context)
+    return render(request, 'home/detail_lapangan_new.html', context)
