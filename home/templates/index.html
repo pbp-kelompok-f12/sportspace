@@ -2,378 +2,173 @@
 {% load static %}
 
 {% block content %}
-
 <main>
     <section class="hero-section">
+        <!-- ... Konten Hero Section (tidak berubah) ... -->
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <h1>We are <strong>SportSpace</strong></h1>
+                    <h1 class="hero-title">We are <strong>SportSpace</strong></h1>
                     <div class="search-box mt-4">
-                        <h2>Book Jakarta Padel Courts Near you</h2>
+                        <h2 class="search-box-title">Book Jakarta Padel Courts Near you</h2>
                         <form class="mt-3" id="searchForm">
                             <div class="mb-3">
                                 <input type="text" class="form-control" id="searchInput" placeholder="Search...">
                             </div>
-                            <div class="mb-3">
+                            <div class="d-flex gap-2 mb-3">
                                 <select class="form-select" id="locationSelect">
                                     <option selected>Pilih Lokasi</option>
-                                    <option value="jakarta_selatan">Jakarta Selatan</option>
-                                    <option value="jakarta_pusat">Jakarta Pusat</option>
-                                    <option value="jakarta_utara">Jakarta Utara</option>
-                                    <option value="jakarta_timur">Jakarta Timur</option>
-                                    <option value="jakarta_barat">Jakarta Barat</option>
+                                    <option value="jakarta selatan">Jakarta Selatan</option>
+                                    <option value="jakarta pusat">Jakarta Pusat</option>
+                                    <option value="jakarta barat">Jakarta Barat</option>
+                                    <option value="jakarta timur">Jakarta Timur</option>
+                                    <!-- Opsi lainnya -->
                                 </select>
+                                <button type="submit" class="btn btn-search">Search</button>
                             </div>
-                            <button type="submit" class="btn btn-search">Search</button>
-                            <button type="button" class="btn btn-secondary" onclick="refreshFromAPI()">Refresh Data</button>
-                            <button type="button" class="btn btn-primary" onclick="showCreateModal()">Add Lapangan</button>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-primary" onclick="showCreateModal()">Add Lapangan</button>
+                                <button type="button" class="btn btn-secondary" onclick="refreshFromAPI()">Refresh Data</button>
+                            </div>
                         </form>
                     </div>
                 </div>
-                <div class="col-lg-6 d-none d-lg-flex justify-content-center align-items-center">
-                    <div class="hero-logo">
-                        <img src="{% static 'home/images/logo.png' %}" alt="Sport Space Logo">
-                    </div>
-                </div>
             </div>
         </div>
     </section>
 
-    <section class="courts-section">
-        <div class="container">
-            <h2 class="section-title">Recommended Courts</h2>
-            <div class="courts-carousel-wrapper">
-                <div class="courts-carousel" id="recommendedCarousel">
-                    <!-- Will be populated by AJAX -->
-                </div>
-                <button class="carousel-control-prev" onclick="scrollCarousel('recommendedCarousel', -320)">&#8249;</button>
-                <button class="carousel-control-next" onclick="scrollCarousel('recommendedCarousel', 320)">&#8250;</button>
-            </div>
-        </div>
-    </section>
-
-    <section class="courts-section bg-white">
-        <div class="container">
-            <h2 class="section-title">All Courts</h2>
-            <div class="courts-carousel-wrapper">
-                <div class="courts-carousel" id="allCourtsCarousel">
-                    <!-- Will be populated by AJAX -->
-                </div>
-                <button class="carousel-control-prev" onclick="scrollCarousel('allCourtsCarousel', -320)">&#8249;</button>
-                <button class="carousel-control-next" onclick="scrollCarousel('allCourtsCarousel', 320)">&#8250;</button>
-            </div>
-        </div>
-    </section>
+    <!-- Courts Sections -->
+    <section class="courts-section"><div class="container"><h2 class="section-title">Recommended Courts</h2><div class="courts-carousel-wrapper"><div class="courts-carousel" id="recommendedCarousel"></div><button class="carousel-control-prev" onclick="scrollCarousel('recommendedCarousel', -320)">&#8249;</button><button class="carousel-control-next" onclick="scrollCarousel('recommendedCarousel', 320)">&#8250;</button></div></div></section>
+    <section class="courts-section bg-white"><div class="container"><h2 class="section-title">All Courts</h2><div class="courts-carousel-wrapper"><div class="courts-carousel" id="allCourtsCarousel"></div><button class="carousel-control-prev" onclick="scrollCarousel('allCourtsCarousel', -320)">&#8249;</button><button class="carousel-control-next" onclick="scrollCarousel('allCourtsCarousel', 320)">&#8250;</button></div></div></section>
 </main>
 
-<!-- Modal untuk Create/Edit Lapangan -->
-<div class="modal fade" id="lapanganModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Add Lapangan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="lapanganForm">
-                    <input type="hidden" id="lapanganId">
-                    <div class="mb-3">
-                        <label for="placeId" class="form-label">Place ID *</label>
-                        <input type="text" class="form-control" id="placeId" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="nama" class="form-label">Nama Lapangan *</label>
-                        <input type="text" class="form-control" id="nama" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="alamat" class="form-label">Alamat *</label>
-                        <textarea class="form-control" id="alamat" rows="2" required></textarea>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="rating" class="form-label">Rating</label>
-                            <input type="number" class="form-control" id="rating" step="0.1" min="0" max="5">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="totalReview" class="form-label">Total Review</label>
-                            <input type="number" class="form-control" id="totalReview" min="0">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="thumbnailUrl" class="form-label">Thumbnail URL</label>
-                        <input type="url" class="form-control" id="thumbnailUrl">
-                    </div>
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Notes</label>
-                        <textarea class="form-control" id="notes" rows="2"></textarea>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="isFeatured">
-                        <label class="form-check-label" for="isFeatured">Featured/Recommended</label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveLapangan()">Save</button>
-            </div>
-        </div>
-    </div>
+<!-- Toast Notification Containers -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true"><div class="d-flex"><div class="toast-body"><i class="bi bi-check-circle-fill me-2"></i><span id="toastMessage"></span></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>
+    <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true"><div class="d-flex"><div class="toast-body"><i class="bi bi-x-circle-fill me-2"></i><span id="errorMessage"></span></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>
 </div>
 
-<footer class="footer">
-    <div class="container d-flex justify-content-between align-items-center">
-        <div>
-            <img src="{% static 'home/images/logo.png' %}" alt="Sport Space Logo" class="me-2"> <span>Home</span>
-        </div>
-        <div>
-            <span>Contact Us: sportspace@gmail.com</span>
-        </div>
-    </div>
-</footer>
-
+<!-- SCRIPTS -->
+<script src="{% static 'home/js/toast.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    let currentEditId = null;
     let allLapangan = [];
+    document.addEventListener('DOMContentLoaded', loadLapangan);
 
-    // Load lapangan saat halaman dimuat
-    document.addEventListener('DOMContentLoaded', function() {
-        loadLapangan();
-    });
-
-    // Load semua lapangan dari API
     async function loadLapangan() {
         try {
             const response = await fetch("{% url 'home:get_lapangan_json' %}");
-            const data = await response.json();
-            allLapangan = data;
+            allLapangan = await response.json();
             displayLapangan();
         } catch (error) {
-            console.error('Error loading lapangan:', error);
-            alert('Gagal memuat data lapangan');
+            console.error('Error loading venues:', error);
+            showToast('Failed to load venue data.', false);
         }
     }
 
-    // Display lapangan di carousel
     function displayLapangan() {
-        const recommendedCarousel = document.getElementById('recommendedCarousel');
-        const allCourtsCarousel = document.getElementById('allCourtsCarousel');
-        
-        // Filter featured untuk recommended
         const featured = allLapangan.filter(item => item.fields.is_featured);
-        const all = allLapangan;
-
-        recommendedCarousel.innerHTML = renderLapanganCards(featured.length > 0 ? featured : all.slice(0, 5));
-        allCourtsCarousel.innerHTML = renderLapanganCards(all);
+        document.getElementById('recommendedCarousel').innerHTML = renderLapanganCards(featured.length > 0 ? featured : allLapangan.slice(0, 5));
+        document.getElementById('allCourtsCarousel').innerHTML = renderLapanganCards(allLapangan);
     }
 
-    // Render cards HTML
     function renderLapanganCards(lapanganList) {
-        if (lapanganList.length === 0) {
-            return '<p class="text-muted">No courts available.</p>';
-        }
-
+        if (!lapanganList || lapanganList.length === 0) return '<p class="text-muted">No courts available.</p>';
         return lapanganList.map(item => {
             const fields = item.fields;
             const thumbnailUrl = fields.thumbnail_url || 'https://via.placeholder.com/300x180.png?text=No+Image';
-            
+            const venueId = item.pk;
+
+            // Escape quotes for safe JavaScript function calls
+            const safeNama = fields.nama.replace(/'/g, "\\'");
+            const safeAlamat = fields.alamat.replace(/'/g, "\\'");
+            const safeThumbnailUrl = thumbnailUrl.replace(/'/g, "\\'");
+
             return `
-                <div class="court-card" onclick="goToBooking('${fields.nama}', '${fields.alamat}', '${thumbnailUrl}')">
+                <div class="court-card">
                     <img src="${thumbnailUrl}" alt="${fields.nama}">
                     <div class="court-card-body">
                         <h5>${fields.nama}</h5>
                         <p>${fields.alamat.split(' ').slice(0, 4).join(' ')}...</p>
                         ${fields.rating ? `<p class="text-muted">Rating: ${fields.rating} ⭐ (${fields.total_review || 0} reviews)</p>` : ''}
-                        <div class="mt-2">
-                            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); goToBooking('${fields.nama}', '${fields.alamat}', '${thumbnailUrl}')">Book Now</button>
-                            <button class="btn btn-sm btn-warning me-1" onclick="event.stopPropagation(); editLapangan(${item.pk})">Edit</button>
-                            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteLapangan(${item.pk})">Delete</button>
+                        
+                        <!-- TOMBOL BARU DITAMBAHKAN DI SINI -->
+                        <div class="mt-2 d-flex justify-content-start gap-2">
+                            <button class="btn btn-sm btn-success" onclick="goToBooking('${safeNama}', '${safeAlamat}', '${safeThumbnailUrl}')">Book Now</button>
+                            <a href="/review/all/${venueId}/" class="btn btn-sm btn-outline-primary">Reviews</a>
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
         }).join('');
     }
 
-    // Scroll carousel
-    function scrollCarousel(carouselId, amount) {
-        document.getElementById(carouselId).scrollLeft += amount;
-    }
-
-    // Show modal untuk create
-    function showCreateModal() {
-        currentEditId = null;
-        document.getElementById('modalTitle').textContent = 'Add Lapangan';
-        document.getElementById('lapanganForm').reset();
-        document.getElementById('lapanganId').value = '';
-        const modal = new bootstrap.Modal(document.getElementById('lapanganModal'));
-        modal.show();
-    }
-
-    // Edit lapangan
-    async function editLapangan(id) {
-        try {
-            const response = await fetch(`/home/api/lapangan/${id}/`);
-            const data = await response.json();
-            
-            currentEditId = id;
-            document.getElementById('modalTitle').textContent = 'Edit Lapangan';
-            document.getElementById('lapanganId').value = id;
-            document.getElementById('placeId').value = data.place_id;
-            document.getElementById('nama').value = data.nama;
-            document.getElementById('alamat').value = data.alamat;
-            document.getElementById('rating').value = data.rating || '';
-            document.getElementById('totalReview').value = data.total_review || '';
-            document.getElementById('thumbnailUrl').value = data.thumbnail_url || '';
-            document.getElementById('notes').value = data.notes || '';
-            document.getElementById('isFeatured').checked = data.is_featured;
-            
-            const modal = new bootstrap.Modal(document.getElementById('lapanganModal'));
-            modal.show();
-        } catch (error) {
-            console.error('Error loading lapangan:', error);
-            alert('Gagal memuat data lapangan');
-        }
-    }
-
-    // Save lapangan (create or update)
-    async function saveLapangan() {
-        const data = {
-            place_id: document.getElementById('placeId').value,
-            nama: document.getElementById('nama').value,
-            alamat: document.getElementById('alamat').value,
-            rating: document.getElementById('rating').value || null,
-            total_review: document.getElementById('totalReview').value || null,
-            thumbnail_url: document.getElementById('thumbnailUrl').value,
-            notes: document.getElementById('notes').value,
-            is_featured: document.getElementById('isFeatured').checked
-        };
-
-        // Validasi
-        if (!data.place_id || !data.nama || !data.alamat) {
-            alert('Place ID, Nama, dan Alamat harus diisi!');
-            return;
-        }
-
-        try {
-            let url, method;
-            if (currentEditId) {
-                // Update
-                url = `/home/api/lapangan/${currentEditId}/update/`;
-                method = 'POST';
-            } else {
-                // Create
-                url = "{% url 'home:create_lapangan_ajax' %}";
-                method = 'POST';
-            }
-
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                alert(result.message);
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('lapanganModal'));
-                modal.hide();
-                // Reload data
-                await loadLapangan();
-            } else {
-                alert('Error: ' + result.message);
-            }
-        } catch (error) {
-            console.error('Error saving lapangan:', error);
-            alert('Gagal menyimpan data');
-        }
-    }
-
-    // Delete lapangan
     async function deleteLapangan(id) {
-        if (!confirm('Apakah Anda yakin ingin menghapus lapangan ini?')) {
-            return;
-        }
-
+        if (!confirm('Are you sure you want to delete this venue?')) return;
         try {
             const response = await fetch(`/home/api/lapangan/${id}/delete/`, {
                 method: 'DELETE',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
-                }
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
             });
-
             const result = await response.json();
-
-            if (response.ok) {
-                alert(result.message);
-                await loadLapangan();
-            } else {
-                alert('Error: ' + result.message);
-            }
+            showToast(result.message, response.ok);
+            if (response.ok) await loadLapangan();
         } catch (error) {
-            console.error('Error deleting lapangan:', error);
-            alert('Gagal menghapus data');
+            console.error('Error deleting venue:', error);
+            showToast('Failed to delete venue.', false);
         }
     }
+    async function loadAndShowModal(url) {
+        try {
+            const response = await fetch(url);
+            const modalHTML = await response.text();
+            const container = document.getElementById('modal-container');
+            container.innerHTML = modalHTML;
+            
+            const modalElement = document.getElementById('lapanganModal');
+            const modal = new bootstrap.Modal(modalElement);
 
-    // Refresh data dari Google Maps API
-    async function refreshFromAPI() {
-        if (!confirm('Refresh data dari Google Maps API? Ini akan mengupdate semua data.')) {
-            return;
+            // Hapus HTML modal dari DOM setelah ditutup
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                container.innerHTML = '';
+            });
+
+            modal.show();
+        } catch (error) {
+            console.error('Error loading modal:', error);
+            showToast('Could not load the form.', false);
         }
-
+    }
+    async function refreshFromAPI() {
+        if (!confirm('Refresh data from Google Maps API? This will update all venue data.')) return;
         try {
             const response = await fetch("{% url 'home:refresh_from_api' %}");
             const result = await response.json();
-
-            if (response.ok) {
-                alert(result.message);
-                await loadLapangan();
-            } else {
-                alert('Error: ' + result.message);
-            }
+            showToast(result.message, response.ok);
+            if (response.ok) await loadLapangan();
         } catch (error) {
             console.error('Error refreshing data:', error);
-            alert('Gagal refresh data');
+            showToast('Failed to refresh data.', false);
         }
     }
 
-    // Search functionality
     document.getElementById('searchForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const location = document.getElementById('locationSelect').value;
-
         let filtered = allLapangan;
-
-        // Filter by search term
         if (searchTerm) {
-            filtered = filtered.filter(item => 
-                item.fields.nama.toLowerCase().includes(searchTerm) ||
-                item.fields.alamat.toLowerCase().includes(searchTerm)
-            );
+            filtered = filtered.filter(item => item.fields.nama.toLowerCase().includes(searchTerm) || item.fields.alamat.toLowerCase().includes(searchTerm));
         }
-
-        // Filter by location
         if (location && location !== 'Pilih Lokasi') {
-            filtered = filtered.filter(item => 
-                item.fields.alamat.toLowerCase().includes(location.replace('_', ' '))
-            );
+            filtered = filtered.filter(item => item.fields.alamat.toLowerCase().includes(location));
         }
-
-        // Update display
-        const allCourtsCarousel = document.getElementById('allCourtsCarousel');
-        allCourtsCarousel.innerHTML = renderLapanganCards(filtered);
+        document.getElementById('allCourtsCarousel').innerHTML = renderLapanganCards(filtered);
     });
-
-    // Navigate to booking page
+    
+    function scrollCarousel(carouselId, amount) { document.getElementById(carouselId).scrollLeft += amount; }
+    function getCookie(name) {
+        let cookieValue = null; if (document.cookie && document.cookie !== '') { const cookies = document.cookie.split(';'); for (let i = 0; i < cookies.length; i++) { const cookie = cookies[i].trim(); if (cookie.substring(0, name.length + 1) === (name + '=')) { cookieValue = decodeURIComponent(cookie.substring(name.length + 1)); break; } } } return cookieValue;
+    }
     async function goToBooking(nama, alamat, thumbnailUrl) {
         try {
             // First, create or get the venue in the booking system
@@ -403,26 +198,68 @@
             alert('Gagal mengakses halaman booking');
         }
     }
-
-
-    // Get CSRF token from cookies
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+    function showCreateModal() {
+        loadAndShowModal("{% url 'home:get_lapangan_modal_add' %}");
     }
 </script>
 
 <style>
+    /* ----- Begin Figma Design Styles ----- */
+    .hero-section {
+        background-color: #0d2c3e; /* Dark teal background */
+        padding: 60px 0;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 300;
+        color: #ffffff;
+    }
+
+    .hero-title strong {
+        font-weight: 700;
+    }
+
+    .search-box {
+        background-color: #ffffff;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .search-box-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0d2c3e; /* Match background color for text */
+        margin-bottom: 1rem;
+    }
+
+    .search-box .form-control,
+    .search-box .form-select {
+        border-radius: 10px;
+        padding: 12px 15px;
+        border: 1px solid #ced4da;
+    }
+    
+    .search-box .form-control::placeholder {
+        color: #adb5bd;
+    }
+
+    .btn-search {
+        background-color: #007bff; /* Figma blue */
+        color: white;
+        font-weight: bold;
+        border-radius: 10px;
+        padding: 12px 25px;
+        border: none;
+        flex-shrink: 0; /* Prevents the button from shrinking */
+    }
+
+    .btn-search:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+    /* ----- End Figma Design Styles ----- */
+    
     .courts-carousel {
         display: flex;
         gap: 20px;
@@ -457,14 +294,12 @@
         overflow: hidden;
         background: white;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: transform 0.3s, box-shadow 0.3s;
-        cursor: pointer;
+        transition: transform 0.3s;
     }
 
     .court-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        border-color: #007bff;
     }
 
     .court-card img {
@@ -522,6 +357,14 @@
     .carousel-control-next {
         right: -20px;
     }
+    
+    .form-control {
+        color: black;
+    }
 </style>
-
 {% endblock %}
+
+
+
+
+    

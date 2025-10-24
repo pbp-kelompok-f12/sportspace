@@ -14,6 +14,34 @@ import json
 def is_admin(user):
     return hasattr(user, 'profile') and user.profile.role == 'admin'
 
+from django.views.decorators.csrf import csrf_exempt
+
+from django.contrib.auth.models import User
+from django.http import JsonResponse
+
+def create_admin_user(request):
+    if request.method == 'POST':
+        # Jika admin sudah ada, tampilkan pesan gagal
+        if User.objects.filter(username='admin').exists():
+            return render(request, 'admin_created_success.html', {
+                'success': False,
+                'message': 'User admin sudah ada.'
+            })
+
+        # Buat akun superuser baru
+        User.objects.create_superuser(
+            username='admin',
+            email='seanmarcello836@gmail.com',
+            password='cukurukuk'
+        )
+        return render(request, 'admin_created_success.html', {
+            'success': True,
+            'message': 'Akun admin berhasil dibuat!'
+        })
+
+    # Jika GET, tampilkan halaman konfirmasi
+    return render(request, 'create_admin.html')
+
 
 # ================= LAPANGAN =================
 

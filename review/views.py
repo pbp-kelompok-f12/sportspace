@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from home.models import LapanganPadel
 from .models import Review
 from .forms import ReviewForm, EditReviewForm
+from django.http import JsonResponse
+import json
 
 # review/views.py
 @login_required
@@ -21,7 +23,7 @@ def add_review(request, lapangan_id):
             review = form.save(commit=False)
             review.user = request.user
             review.lapangan = lapangan
-            review.rating = lapangan.rating  # rating dari API / model
+            review.rating = lapangan.rating  
             review.save()
             return redirect('review:my_reviews')
     else:
@@ -32,12 +34,27 @@ def add_review(request, lapangan_id):
 @login_required
 def all_reviews(request, id):
     lapangan = get_object_or_404(LapanganPadel, pk=id)
-    reviews = lapangan.reviews.all()
-    return render(request, 'review/all_reviews.html', {
-        'lapangan': lapangan,
-        'reviews': reviews,
-    })
+    reviews = Review.objects.filter(lapangan=lapangan).order_by('-created_at')
 
+    # Form logic
+    if request.method == "POST":
+        form = ReviewForm(request.POST, user=request.user)  
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.user = request.user
+            review.lapangan = lapangan  
+            review.rating = lapangan.rating
+            review.save()
+            return redirect('review:all_reviews', id=id)
+    else:
+        form = ReviewForm(user=request.user)
+
+    return render(request, "all_reviews.html", {
+        "lapangan": lapangan,
+        "reviews": reviews,
+        "form": form,
+    })
+    
 @login_required
 def my_reviews(request):
     reviews = Review.objects.filter(user=request.user)
@@ -60,29 +77,36 @@ def my_reviews(request):
         form = ReviewForm(user=request.user)
 
     return render(request, "my_reviews.html", {"reviews": reviews, "form": form})
-    
+
 @login_required
 def edit_review(request, pk):
     review = get_object_or_404(Review, pk=pk, user=request.user)
     if request.method == "POST":
-        form = EditReviewForm(request.POST, instance=review)
-        if form.is_valid():
-            updated = form.save(commit=False)
-            updated.user = request.user
-            updated.lapangan = review.lapangan   # tetap pakai lapangan lama
-            updated.rating = review.lapangan.rating  
-            updated.save()
-            messages.success(request, "Review updated successfully!")
-            return redirect("review:my_reviews")
-    else:
-        form = EditReviewForm(instance=review)
-    return render(request, "edit_review.html", {"form": form, "review": review})
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+        review.comment = data.get("comment", review.comment)
+
+        anon_val = data.get("anonymous", review.anonymous)
+        if isinstance(anon_val, str):  # convert string "true"/"false" ke boolean
+            anon_val = anon_val.lower() == "true"
+        review.anonymous = bool(anon_val)
+
+        review.save()
+        return JsonResponse({
+            "success": True,
+            "comment": review.comment,
+            "anonymous": review.anonymous
+        })
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
 
 @login_required
 def delete_review(request, pk):
-    review = get_object_or_404(Review, pk=pk, user=request.user) 
+    review = get_object_or_404(Review, pk=pk, user=request.user)
     if request.method == "POST":
         review.delete()
-        messages.success(request, "Review deleted successfully!")
-        return redirect('review:my_reviews')
-    return render(request, "delete_review.html", {"review": review})
+        return JsonResponse({"success": True})
+    return JsonResponse({"error": "Invalid request"}, status=400)
