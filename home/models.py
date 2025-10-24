@@ -17,6 +17,7 @@ class LapanganPadel(models.Model):
     # Additional fields untuk keperluan internal
     notes = models.TextField(blank=True, help_text="Catatan internal tentang lapangan ini")
     is_featured = models.BooleanField(default=False, help_text="Tampilkan di recommended")
+    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='lapangan_added')
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
