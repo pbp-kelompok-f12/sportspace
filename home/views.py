@@ -1,7 +1,7 @@
 # home/views.py
 import requests
 import json
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
@@ -11,90 +11,64 @@ from django.core import serializers
 from .models import LapanganPadel
 from .forms import LapanganPadelForm
 
-# ... (get_google_maps_data, landing, home_view, and all API endpoints remain the same) ...
 def get_google_maps_data(query="lapangan padel di jakarta"):
-    """Fungsi untuk mengambil data dari Google Places API."""
-    
+    # ... (fungsi ini tidak berubah) ...
     api_key = settings.GOOGLE_MAPS_API_KEY
     url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
-    
-    params = {
-        'query': query,
-        'key': api_key,
-        'type': 'sports_complex'
-    }
-    
+    params = {'query': query, 'key': api_key, 'type': 'sports_complex'}
     venues = []
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()
         results = response.json().get('results', [])
-
         for place in results:
             photo_url = None
             if place.get('photos'):
                 photo_reference = place['photos'][0]['photo_reference']
                 photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={photo_reference}&key={api_key}"
-
             venue_data = {
-                'place_id': place['place_id'],
-                'nama': place['name'],
+                'place_id': place['place_id'], 'nama': place['name'],
                 'alamat': place.get('formatted_address', 'Alamat tidak tersedia'),
                 'rating': place.get('rating', 0),
                 'total_review': place.get('user_ratings_total', 0),
                 'thumbnail_url': photo_url,
             }
             venues.append(venue_data)
-
     except requests.exceptions.RequestException as e:
         print(f"Error saat request ke API: {e}")
-        return []
-
     return venues
 
 
 def landing(request):
-    """Landing page untuk user yang belum login"""
     if request.user.is_authenticated:
         return redirect('home:home')
     return render(request, "landing.html")
 
-
 @login_required(login_url='/accounts/login/')
 def home_view(request):
-    """Home page setelah login - menampilkan lapangan padel"""
-    # Ambil data dari Google Maps API
-    lapangan_from_api = get_google_maps_data("lapangan padel jabodetabek")
-
-    # Simpan atau update data ke database
-    for data in lapangan_from_api:
-        LapanganPadel.objects.update_or_create(
-            place_id=data['place_id'],
-            defaults={
-                'nama': data['nama'],
-                'alamat': data['alamat'],
-                'rating': data['rating'],
-                'total_review': data['total_review'],
-                'thumbnail_url': data['thumbnail_url'],
-            }
-        )
-    
-    # Ambil semua data dari database untuk ditampilkan
-    places = LapanganPadel.objects.all()
-
-    context = {
-        'username': request.user.username,
-        'places': places,
-    }
-    
-    return render(request, 'index.html', context)
-
-
-# ==================== AJAX ENDPOINTS ====================
+    # DIBERSIHKAN: Tidak perlu panggil API di sini, cukup render template.
+    # Data akan dimuat oleh AJAX melalui get_lapangan_json.
+    return render(request, 'index.html')
 
 @login_required(login_url='/accounts/login/')
+def get_lapangan_modal(request, id=None):
+    if id:
+        lapangan = get_object_or_404(LapanganPadel, pk=id)
+        form = LapanganPadelForm(instance=lapangan)
+        title = 'Edit Lapangan'
+        submit_text = 'Update'
+    else:
+        lapangan = None
+        form = LapanganPadelForm()
+        title = 'Add New Lapangan'
+        submit_text = 'Add Lapangan'
+    context = {'form': form, 'title': title, 'submit_text': submit_text, 'lapangan': lapangan}
+    return render(request, 'modal.html', context)
+
+# ... (Semua endpoint AJAX lainnya seperti get_lapangan_json, create_lapangan_ajax, dll. tetap sama) ...
+# ...
+@login_required(login_url='/accounts/login/')
 def get_lapangan_json(request):
-    """Get all lapangan in JSON format"""
     lapangan = LapanganPadel.objects.all()
     data = serializers.serialize('json', lapangan)
     return HttpResponse(data, content_type="application/json")
@@ -102,7 +76,6 @@ def get_lapangan_json(request):
 
 @login_required(login_url='/accounts/login/')
 def get_lapangan_by_id(request, id):
-    """Get lapangan by ID in JSON format"""
     try:
         lapangan = LapanganPadel.objects.get(pk=id)
         data = {
@@ -125,7 +98,6 @@ def get_lapangan_by_id(request, id):
 @require_http_methods(["POST"])
 @login_required(login_url='/accounts/login/')
 def create_lapangan_ajax(request):
-    """Create new lapangan via AJAX"""
     try:
         data = json.loads(request.body)
         
@@ -160,7 +132,6 @@ def create_lapangan_ajax(request):
 @require_http_methods(["POST"])
 @login_required(login_url='/accounts/login/')
 def update_lapangan_ajax(request, id):
-    """Update lapangan via AJAX"""
     try:
         lapangan = get_object_or_404(LapanganPadel, pk=id)
         
@@ -188,7 +159,6 @@ def update_lapangan_ajax(request, id):
 @require_http_methods(["DELETE"])
 @login_required(login_url='/accounts/login/')
 def delete_lapangan_ajax(request, id):
-    """Delete lapangan via AJAX"""
     try:
         lapangan = get_object_or_404(LapanganPadel, pk=id)
         
@@ -201,36 +171,9 @@ def delete_lapangan_ajax(request, id):
         
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-
-@login_required(login_url='/accounts/login/')
-def get_lapangan_modal(request, id=None):
-    """Mengembalikan konten HTML modal untuk tambah/edit."""
-    if id:
-        # Mode Edit
-        lapangan = get_object_or_404(LapanganPadel, pk=id)
-        form = LapanganPadelForm(instance=lapangan)
-        title = 'Edit Lapangan'
-        submit_text = 'Update'
-    else:
-        # Mode Tambah
-        lapangan = None
-        form = LapanganPadelForm()
-        title = 'Add New Lapangan'
-        submit_text = 'Add Lapangan'
         
-    context = {
-        'form': form,
-        'title': title,
-        'submit_text': submit_text,
-        'lapangan': lapangan
-    }
-    return render(request, 'modal.html', context)
-
-
 @login_required(login_url='/accounts/login/')
 def refresh_from_api(request):
-    """Refresh data dari Google Maps API"""
     try:
         lapangan_from_api = get_google_maps_data("lapangan padel jabodetabek")
         
@@ -260,52 +203,3 @@ def refresh_from_api(request):
         
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-
-# ==================== FORM PAGES ====================
-
-@login_required(login_url='/accounts/login/')
-def create_lapangan_page(request):
-    """Halaman form untuk create lapangan"""
-    if request.method == 'POST':
-        form = LapanganPadelForm(request.POST)
-        if form.is_valid():
-            lapangan = form.save(commit=False)
-            lapangan.added_by = request.user
-            lapangan.save()
-            return redirect('home:home')
-    else:
-        form = LapanganPadelForm()
-    
-    context = {
-        'form': form,
-        'title': 'Add New Lapangan',
-        'submit_text': 'Add Lapangan'
-    }
-    # MODIFIED: Render the new create_venue.html template
-    return render(request, 'create_venue.html', context)
-
-
-@login_required(login_url='/accounts/login/')
-def edit_lapangan_page(request, id):
-    """Halaman form untuk edit lapangan"""
-    lapangan = get_object_or_404(LapanganPadel, pk=id)
-    
-    if lapangan.added_by != request.user and not request.user.is_superuser:
-        return redirect('home:home')
-    
-    if request.method == 'POST':
-        form = LapanganPadelForm(request.POST, instance=lapangan)
-        if form.is_valid():
-            form.save()
-            return redirect('home:home')
-    else:
-        form = LapanganPadelForm(instance=lapangan)
-    
-    context = {
-        'form': form,
-        'title': 'Edit Lapangan',
-        'submit_text': 'Update Lapangan',
-        'lapangan': lapangan
-    }
-    return render(request, 'modal.html', context)
