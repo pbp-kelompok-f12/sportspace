@@ -6,3 +6,10 @@ select, select option {
   color: #1f2937 !important;  
   background-color: #ffffff !important;
 }
+
+.text-gray-800 { color: #1f2937 !important; } 
+.text-gray-700 { color: #374151 !important; }
+.text-gray-600 { color: #4b5563 !important; }
+.text-gray-500 { color: #6b7280 !important; }
+.text-gray-400 { color: #9ca3af !important; }
+.text-gray-300 { color: #d1d5db !important; }
