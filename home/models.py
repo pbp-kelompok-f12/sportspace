@@ -14,9 +14,12 @@ class LapanganPadel(models.Model):
     total_review = models.IntegerField(null=True, blank=True)
     thumbnail_url = models.URLField(max_length=500, blank=True, null=True)
     
-    # Additional fields untuk keperluan internal
+    # Field tambahan untuk internal
     notes = models.TextField(blank=True, help_text="Catatan internal tentang lapangan ini")
     is_featured = models.BooleanField(default=False, help_text="Tampilkan di recommended")
+    
+    # --- TAMBAHKAN FIELD INI ---
+    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, help_text="User yang menambahkan data ini")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
