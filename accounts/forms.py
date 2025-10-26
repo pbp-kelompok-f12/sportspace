@@ -29,7 +29,7 @@ class SignUpForm(UserCreationForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['email', 'phone', 'address', 'photo_url']
+        fields = ['email', 'phone', 'address', 'photo_url', 'bio']
         widgets = {
             'email': forms.EmailInput(attrs={
                 'class': (
@@ -58,5 +58,12 @@ class ProfileForm(forms.ModelForm):
                     'focus:border-[#F87E18] focus:ring-2 focus:ring-[#F87E18]/50 transition'
                 ),
                 'placeholder': 'Link Foto Profil'
+            }),
+            'bio': forms.Textarea(attrs={
+                'class': (
+                    'form-control text-black border border-gray-300 w-full rounded-md p-2 h-24 '
+                    'focus:border-[#F87E18] focus:ring-2 focus:ring-[#F87E18]/50 transition'
+                ),
+                'placeholder': 'Tuliskan bio singkat Anda...'
             }),
         }

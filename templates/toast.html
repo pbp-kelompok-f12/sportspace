@@ -1,10 +1,7 @@
-{% load static %}
-<!-- Toast Container -->
-<div id="toast-container" class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 items-end pointer-events-none"></div>
-
 <style>
-  /* Style utama toast */
+  /* ======= TOAST STYLE SPORTSPACE (ELEGANT, SMOOTH, LIGHT EFFECT) ======= */
   .toast {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -12,98 +9,126 @@
     min-width: 280px;
     max-width: 380px;
     padding: 1rem 1.25rem;
-    border-radius: 0.75rem;
+    border-radius: 0.85rem;
     color: white;
     font-weight: 500;
     pointer-events: auto;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
     border-left: 6px solid;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
     opacity: 0;
-    transform: translateY(40%) scale(0.95);
-    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateY(50%) scale(0.92);
+    animation: toastSlideIn 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    overflow: hidden;
   }
 
-  .toast.show {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-
-  .toast.hide {
-    opacity: 0;
-    transform: translateY(50%) scale(0.9);
-  }
-
-  /* Warna dengan tema SportSpace */
+  /* ======= GRADIENT WARNA ======= */
   .toast-success {
-    background: linear-gradient(135deg, #F87E18, #f8a74d);
+    background: linear-gradient(135deg, #F87E18 0%, #FFB347 100%);
     border-color: #F87E18;
+    box-shadow: 0 0 25px rgba(248, 126, 24, 0.45);
   }
 
   .toast-error {
-    background: linear-gradient(135deg, #0C2D57, #164e8b);
-    border-color: #0C2D57;
+    background: linear-gradient(135deg, #E03131 0%, #FF4B4B 100%);
+    border-color: #E03131;
+    box-shadow: 0 0 25px rgba(224, 49, 49, 0.45);
   }
 
-  .toast-info {
-    background: linear-gradient(135deg, #09396A, #1668b4);
-    border-color: #09396A;
+  /* ======= LIGHT STREAK (untuk toast-success) ======= */
+  .toast-success::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(255, 255, 255, 0.25),
+      transparent
+    );
+    transform: skewX(-20deg);
+    animation: lightSweep 3s ease-in-out infinite;
   }
 
-  .toast-default {
-    background: rgba(71, 85, 105, 0.9);
-    border-color: #64748B;
+  @keyframes lightSweep {
+    0% {
+      left: -100%;
+    }
+    50% {
+      left: 100%;
+    }
+    100% {
+      left: 100%;
+    }
   }
 
+  /* ======= ANIMASI MASUK ======= */
+  @keyframes toastSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(40px) scale(0.9);
+      filter: blur(2px);
+    }
+    60% {
+      opacity: 1;
+      transform: translateY(-6px) scale(1.03);
+      filter: blur(0);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+/* ======= ANIMASI KELUAR (FIXED & SMOOTH) ======= */
+.toast.hide {
+  animation: toastSlideOut 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Hentikan cahaya agar tidak glitch saat keluar */
+.toast.hide::before {
+  animation: none !important;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+@keyframes toastSlideOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+  40% {
+    opacity: 0.9;
+    transform: translateY(8px) scale(0.99);
+  }
+  70% {
+    opacity: 0.6;
+    transform: translateY(20px) scale(0.97);
+    filter: blur(0.5px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(35px) scale(0.95);
+    filter: blur(1px);
+  }
+}
+
+
+  /* ======= CLOSE BUTTON ======= */
   .toast button {
     background: transparent;
     border: none;
     color: white;
     cursor: pointer;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.25s ease, transform 0.25s ease;
   }
 
   .toast button:hover {
-    opacity: 0.7;
+    opacity: 0.75;
+    transform: scale(1.1);
   }
 </style>
-
-<script>
-function showToast(message, type = 'success', duration = 4000) {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-
-  const toast = document.createElement('div');
-  toast.classList.add('toast');
-  toast.classList.add(
-    type === 'success'
-      ? 'toast-success'
-      : type === 'error'
-      ? 'toast-error'
-      : type === 'info'
-      ? 'toast-info'
-      : 'toast-default'
-  );
-
-  toast.innerHTML = `
-    <span>${message}</span>
-    <button onclick="this.closest('.toast').remove()" aria-label="Close">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
-  `;
-
-  container.appendChild(toast);
-
-  // Pastikan animasi terlihat
-  setTimeout(() => toast.classList.add('show'), 10);
-
-  // Hilang otomatis
-  setTimeout(() => {
-    toast.classList.add('hide');
-    setTimeout(() => toast.remove(), 500);
-  }, duration);
-}
-</script>
