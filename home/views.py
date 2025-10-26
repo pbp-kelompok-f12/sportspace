@@ -1,6 +1,7 @@
 # home/views.py
 import requests
 import json
+import uuid
 from django.shortcuts import render, get_object_or_404, redirect
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -46,9 +47,8 @@ def landing(request):
 
 @login_required(login_url='/accounts/login/')
 def home_view(request):
-    # DIBERSIHKAN: Tidak perlu panggil API di sini, cukup render template.
-    # Data akan dimuat oleh AJAX melalui get_lapangan_json.
-    return render(request, 'index.html')
+    
+    return render(request, 'home/index.html')
 
 @login_required(login_url='/accounts/login/')
 def get_lapangan_modal(request, id=None):
@@ -63,16 +63,31 @@ def get_lapangan_modal(request, id=None):
         title = 'Add New Lapangan'
         submit_text = 'Add Lapangan'
     context = {'form': form, 'title': title, 'submit_text': submit_text, 'lapangan': lapangan}
-    return render(request, 'modal.html', context)
+    return render(request, 'home/modal.html', context)
 
-# ... (Semua endpoint AJAX lainnya seperti get_lapangan_json, create_lapangan_ajax, dll. tetap sama) ...
-# ...
+
 @login_required(login_url='/accounts/login/')
 def get_lapangan_json(request):
-    lapangan = LapanganPadel.objects.all()
-    data = serializers.serialize('json', lapangan)
-    return HttpResponse(data, content_type="application/json")
-
+    lapangan_objects = LapanganPadel.objects.all()
+    data = []
+    for lapangan in lapangan_objects:
+        data.append({
+            "pk": lapangan.pk,
+            "model": "home.lapanganpadel", # Meniru format serializer asli
+            "fields": {
+                "nama": lapangan.nama,
+                "alamat": lapangan.alamat,
+                "rating": lapangan.rating,
+                "total_review": lapangan.total_review,
+                "thumbnail_url": lapangan.thumbnail_url,
+                "is_featured": lapangan.is_featured,
+                
+                # Secara eksplisit tambahkan ID user yang membuat data ini.
+                # Jika `added_by` kosong (untuk data lama), kirim `None`.
+                "added_by": lapangan.added_by.id if lapangan.added_by else None
+            }
+        })
+    return JsonResponse(data, safe=False)
 
 @login_required(login_url='/accounts/login/')
 def get_lapangan_by_id(request, id):
@@ -101,33 +116,37 @@ def create_lapangan_ajax(request):
     try:
         data = json.loads(request.body)
         
-        required_fields = ['place_id', 'nama', 'alamat']
+        # 'place_id' tidak lagi diperlukan dari user
+        required_fields = ['nama', 'alamat']
         if not all(field in data and data[field] for field in required_fields):
-            return JsonResponse({'status': 'error', 'message': 'Place ID, Nama, and Alamat are required.'}, status=400)
+            return JsonResponse({'status': 'error', 'message': 'Nama dan Alamat wajib diisi.'}, status=400)
         
-        if LapanganPadel.objects.filter(place_id=data['place_id']).exists():
-            return JsonResponse({'status': 'error', 'message': 'Lapangan with this Place ID already exists.'}, status=400)
-        
+        # Generate place_id unik secara acak
+        new_place_id = f"internal_{uuid.uuid4().hex}"
+        # Pastikan ID yang digenerate belum pernah ada (sangat kecil kemungkinannya, tapi ini best practice)
+        while LapanganPadel.objects.filter(place_id=new_place_id).exists():
+            new_place_id = f"internal_{uuid.uuid4().hex}"
+
         lapangan = LapanganPadel.objects.create(
-            place_id=data['place_id'],
+            place_id=new_place_id, # <-- Gunakan ID yang baru dibuat
             nama=data['nama'],
             alamat=data['alamat'],
-            rating=data.get('rating'),
-            total_review=data.get('total_review'),
+            rating=data.get('rating') or None,
+            total_review=data.get('total_review') or None,
             thumbnail_url=data.get('thumbnail_url', ''),
             notes=data.get('notes', ''),
             is_featured=data.get('is_featured', False),
             added_by=request.user
         )
         
-        return JsonResponse({'status': 'success', 'message': 'Lapangan added successfully!'}, status=201)
+        return JsonResponse({'status': 'success', 'message': 'Lapangan berhasil ditambahkan!'}, status=201)
         
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-
+        
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required(login_url='/accounts/login/')
