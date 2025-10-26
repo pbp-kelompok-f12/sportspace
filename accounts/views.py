@@ -276,3 +276,45 @@ def get_friend_suggestions(request):
         for s in suggestions
     ]
     return JsonResponse({"suggestions": data})
+
+
+from django.contrib.auth.decorators import login_required
+from .models import ChatMessage, Profile
+
+@login_required
+def get_chat_history(request, username):
+    target = User.objects.filter(username=username).first()
+    if not target:
+        return JsonResponse({"success": False, "message": "User tidak ditemukan."})
+
+    # Pastikan mereka teman
+    if target.profile not in request.user.profile.friends.all():
+        return JsonResponse({"success": False, "message": "Bukan teman."})
+
+    messages = ChatMessage.objects.filter(
+        sender__in=[request.user, target],
+        receiver__in=[request.user, target]
+    ).order_by("timestamp")
+
+    data = [{
+        "sender": msg.sender.username,
+        "message": msg.message,
+        "timestamp": msg.timestamp.strftime("%H:%M")
+    } for msg in messages]
+
+    return JsonResponse({"success": True, "messages": data})
+
+@login_required
+def send_chat_message(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        text = request.POST.get("message")
+
+        target = User.objects.filter(username=username).first()
+        if not target:
+            return JsonResponse({"success": False, "message": "User tidak ditemukan."})
+
+        ChatMessage.objects.create(sender=request.user, receiver=target, message=text)
+        return JsonResponse({"success": True, "message": "Pesan terkirim."})
+
+    return JsonResponse({"success": False, "message": "Gunakan metode POST."})
