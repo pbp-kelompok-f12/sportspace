@@ -13,22 +13,33 @@ from .models import LapanganPadel
 from .forms import LapanganPadelForm
 
 def get_google_maps_data(query="lapangan padel di jakarta"):
-    # ... (fungsi ini tidak berubah) ...
     api_key = settings.GOOGLE_MAPS_API_KEY
+    if not api_key:
+        print("Google Maps API key not configured")
+        return []
+        
     url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
     params = {'query': query, 'key': api_key, 'type': 'sports_complex'}
     venues = []
     try:
-        response = requests.get(url, params=params)
+        response = requests.get(url, params=params, timeout=10)
         response.raise_for_status()
-        results = response.json().get('results', [])
+        data = response.json()
+        
+        # Check for API errors
+        if data.get('status') != 'OK':
+            print(f"Google Maps API error: {data.get('error_message', 'Unknown error')}")
+            return []
+            
+        results = data.get('results', [])
         for place in results:
             photo_url = None
             if place.get('photos'):
                 photo_reference = place['photos'][0]['photo_reference']
                 photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={photo_reference}&key={api_key}"
             venue_data = {
-                'place_id': place['place_id'], 'nama': place['name'],
+                'place_id': place['place_id'], 
+                'nama': place['name'],
                 'alamat': place.get('formatted_address', 'Alamat tidak tersedia'),
                 'rating': place.get('rating', 0),
                 'total_review': place.get('user_ratings_total', 0),
@@ -36,7 +47,9 @@ def get_google_maps_data(query="lapangan padel di jakarta"):
             }
             venues.append(venue_data)
     except requests.exceptions.RequestException as e:
-        print(f"Error saat request ke API: {e}")
+        print(f"Error saat request ke Google Maps API: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
     return venues
 
 
@@ -194,26 +207,43 @@ def delete_lapangan_ajax(request, id):
 @login_required(login_url='/accounts/login/')
 def refresh_from_api(request):
     try:
+        # Check if API key is configured
+        if not settings.GOOGLE_MAPS_API_KEY:
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'Google Maps API key not configured. Please contact administrator.'
+            }, status=500)
+        
         lapangan_from_api = get_google_maps_data("lapangan padel jabodetabek")
+        
+        if not lapangan_from_api:
+            return JsonResponse({
+                'status': 'error', 
+                'message': 'No data received from Google Maps API. Please check API key and try again.'
+            }, status=500)
         
         updated_count = 0
         created_count = 0
         
         for data in lapangan_from_api:
-            obj, created = LapanganPadel.objects.update_or_create(
-                place_id=data['place_id'],
-                defaults={
-                    'nama': data['nama'],
-                    'alamat': data['alamat'],
-                    'rating': data['rating'],
-                    'total_review': data['total_review'],
-                    'thumbnail_url': data['thumbnail_url'],
-                }
-            )
-            if created:
-                created_count += 1
-            else:
-                updated_count += 1
+            try:
+                obj, created = LapanganPadel.objects.update_or_create(
+                    place_id=data['place_id'],
+                    defaults={
+                        'nama': data['nama'],
+                        'alamat': data['alamat'],
+                        'rating': data['rating'],
+                        'total_review': data['total_review'],
+                        'thumbnail_url': data['thumbnail_url'],
+                    }
+                )
+                if created:
+                    created_count += 1
+                else:
+                    updated_count += 1
+            except Exception as e:
+                print(f"Error processing venue {data.get('nama', 'Unknown')}: {e}")
+                continue
         
         return JsonResponse({
             'status': 'success',
@@ -221,4 +251,8 @@ def refresh_from_api(request):
         })
         
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        print(f"Error in refresh_from_api: {e}")
+        return JsonResponse({
+            'status': 'error', 
+            'message': f'Failed to refresh data: {str(e)}'
+        }, status=500)

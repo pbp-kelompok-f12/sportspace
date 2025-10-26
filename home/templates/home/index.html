@@ -203,11 +203,11 @@
         try {
             const response = await fetch("{% url 'home:refresh_from_api' %}");
             const result = await response.json();
-            showToast(result.message, response.ok);
-            if (response.ok) await loadLapangan();
+            showToast(result.message, result.status === 'success');
+            if (result.status === 'success') await loadLapangan();
         } catch (error) {
             console.error('Error refreshing data:', error);
-            showToast('Failed to refresh data.', false);
+            showToast('Failed to refresh data.', 'error');
         }
     }
 
