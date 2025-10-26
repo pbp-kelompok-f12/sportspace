@@ -17,4 +17,7 @@ urlpatterns = [
     path("friends/count/", views.get_friend_count, name="get_friend_count"),
     path("friend-requests/count/", views.get_request_count, name="get_request_count"),
     path("friends/suggestions/", views.get_friend_suggestions, name="get_friend_suggestions"),
+
+    path("chat/<str:username>/", views.get_chat_history, name="get_chat_history"),
+    path("chat/send/", views.send_chat_message, name="send_chat_message"),
 ]
