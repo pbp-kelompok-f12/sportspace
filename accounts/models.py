@@ -17,6 +17,8 @@ class Profile(models.Model):
     email = models.EmailField(blank=True, null=True)
     photo_url = models.URLField(blank=True, null=True)
 
+    friends = models.ManyToManyField("self", symmetrical=True, blank=True)
+
     bio = models.TextField(blank=True, default="", help_text="Deskripsi singkat tentang diri pengguna")
     total_booking = models.PositiveIntegerField(default=0, help_text="Jumlah booking yang pernah dilakukan")
     avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00, help_text="Rata-rata rating pengguna")
@@ -54,3 +56,23 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
         )
     else:
         instance.profile.save()
+
+# FRIENDD
+
+class FriendRequest(models.Model):
+    from_user = models.ForeignKey(User, related_name='sent_requests', on_delete=models.CASCADE)
+    to_user = models.ForeignKey(User, related_name='received_requests', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_accepted = models.BooleanField(default=False)
+
+    def accept(self):
+        """Jika diterima, tambahkan ke daftar teman kedua belah pihak"""
+        self.is_accepted = True
+        self.save()
+        self.from_user.profile.friends.add(self.to_user.profile)
+        self.to_user.profile.friends.add(self.from_user.profile)
+        self.delete()  
+
+    def __str__(self):
+        return f"{self.from_user.username} → {self.to_user.username}"
+    

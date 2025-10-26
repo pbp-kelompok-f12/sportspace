@@ -8,6 +8,13 @@ urlpatterns = [
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
     path('profile/', views.profile_view, name='profile'),
-    # path('edit-profile/', views.edit_profile, name='edit_profile'),
     path('profile/json/', views.profile_json, name='profile_json'),
+
+    path("friends/send/", views.send_friend_request, name="send_friend_request"),
+    path("handle-friend-request/", views.handle_friend_request, name="handle_friend_request"),
+    path("friends/", views.friends_json, name="friends_json"),
+    path("unfriend/", views.unfriend, name="unfriend"),
+    path("friends/count/", views.get_friend_count, name="get_friend_count"),
+    path("friend-requests/count/", views.get_request_count, name="get_request_count"),
+    path("friends/suggestions/", views.get_friend_suggestions, name="get_friend_suggestions"),
 ]
