@@ -66,6 +66,7 @@ def profile_view(request):
                 'phone': profile.phone,
                 'address': profile.address,
                 'photo_url': profile.photo_url,
+                'bio': profile.bio,
             })
         else:
             return JsonResponse({'success': False, 'errors': form.errors}, status=400)
@@ -73,44 +74,28 @@ def profile_view(request):
     # GET request
     else:
         form = ProfileForm(instance=profile)
-        return render(request, 'profile.html', {
-            'profile': profile,
-            'form': form
+        return render(request, "profile.html", {
+            "profile": profile,
+            "total_booking": profile.total_booking,
+            "average_rating": profile.avg_rating,
+            "joined_date": profile.joined_date.strftime("%d %b %Y"),
+            "form": form,
         })
 
-
-# @login_required
-# def edit_profile(request):
-#     # Ambil profil user yang sedang login
-#     profile = request.user.profile
-
-#     # Jika email di Profile masih kosong, isi dari User.email
-#     if not profile.email:
-#         profile.email = request.user.email
-
-#     if request.method == 'POST':
-#         # Ambil data POST dan isi ke instance profile yang sudah ada
-#         form = ProfileForm(request.POST, request.FILES, instance=profile)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('accounts:profile') 
-#     else:
-#         # isi form dengan data lama
-#         form = ProfileForm(instance=profile)
-
-#     context = {'form': form}
-#     return render(request, 'edit_profile.html', context)
-
-
 # JSON PROFILE (untuk AJAX)
+
 @login_required
 def profile_json(request):
     profile = request.user.profile
-    data = {
-        'username': request.user.username,
-        'email': request.user.email,
-        'role': profile.role,
+    return JsonResponse({
+        'success': True,
+        'message': 'Profil berhasil diperbarui!',
+        'email': profile.email,
         'phone': profile.phone,
         'address': profile.address,
-    }
-    return JsonResponse(data)
+        'photo_url': profile.photo_url,
+        'bio': profile.bio,
+        'total_booking': profile.total_booking,
+        'avg_rating': profile.avg_rating,
+        'joined_date': profile.joined_date.strftime("%d %b %Y"),
+    })

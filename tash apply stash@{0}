@@ -1,0 +1,336 @@
+[1mdiff --git a/accounts/forms.py b/accounts/forms.py[m
+[1mindex 0574e3b..e7de9de 100644[m
+[1m--- a/accounts/forms.py[m
+[1m+++ b/accounts/forms.py[m
+[36m@@ -29,7 +29,7 @@[m [mclass SignUpForm(UserCreationForm):[m
+ class ProfileForm(forms.ModelForm):[m
+     class Meta:[m
+         model = Profile[m
+[31m-        fields = ['email', 'phone', 'address', 'photo_url'][m
+[32m+[m[32m        fields = ['email', 'phone', 'address', 'photo_url', 'bio'][m
+         widgets = {[m
+             'email': forms.EmailInput(attrs={[m
+                 'class': ([m
+[36m@@ -59,4 +59,11 @@[m [mclass ProfileForm(forms.ModelForm):[m
+                 ),[m
+                 'placeholder': 'Link Foto Profil'[m
+             }),[m
+[31m-        }[m
+\ No newline at end of file[m
+[32m+[m[32m            'bio': forms.Textarea(attrs={[m
+[32m+[m[32m                'class': ([m
+[32m+[m[32m                    'form-control text-black border border-gray-300 w-full rounded-md p-2 h-24 '[m
+[32m+[m[32m                    'focus:border-[#F87E18] focus:ring-2 focus:ring-[#F87E18]/50 transition'[m
+[32m+[m[32m                ),[m
+[32m+[m[32m                'placeholder': 'Tuliskan bio singkat Anda...'[m
+[32m+[m[32m            }),[m
+[32m+[m[32m        }[m
+[1mdiff --git a/accounts/models.py b/accounts/models.py[m
+[1mindex af96a3e..f990de1 100644[m
+[1m--- a/accounts/models.py[m
+[1m+++ b/accounts/models.py[m
+[36m@@ -1,5 +1,6 @@[m
+ from django.db import models[m
+ from django.contrib.auth.models import User[m
+[32m+[m[32mfrom django.utils import timezone[m
+ [m
+ class Profile(models.Model):[m
+ [m
+[36m@@ -16,6 +17,11 @@[m [mclass Profile(models.Model):[m
+     email = models.EmailField(blank=True, null=True)[m
+     photo_url = models.URLField(blank=True, null=True)[m
+ [m
+[32m+[m[32m    bio = models.TextField(blank=True, default="", help_text="Deskripsi singkat tentang diri pengguna")[m
+[32m+[m[32m    total_booking = models.PositiveIntegerField(default=0, help_text="Jumlah booking yang pernah dilakukan")[m
+[32m+[m[32m    avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00, help_text="Rata-rata rating pengguna")[m
+[32m+[m[32m    joined_date = models.DateField(default=timezone.now, editable=False, help_text="Tanggal pengguna bergabung")[m
+[32m+[m
+     def __str__(self):[m
+         return f"{self.user.username} ({self.role})"[m
+     [m
+[1mdiff --git a/accounts/templates/profile.html b/accounts/templates/profile.html[m
+[1mindex 04d9a32..f646e87 100644[m
+[1m--- a/accounts/templates/profile.html[m
+[1m+++ b/accounts/templates/profile.html[m
+[36m@@ -2,58 +2,151 @@[m
+ {% load static %}[m
+ [m
+ {% block content %}[m
+[31m-<div class="flex flex-col items-center mt-10">[m
+[31m-  <div class="bg-white/90 backdrop-blur-md shadow-md rounded-xl p-8 w-full max-w-lg text-center relative">[m
+[31m-    <h2 class="text-2xl font-semibold text-[#0C2D57] mb-6">Profil Saya</h2>[m
+[31m-[m
+[31m-    <!-- Foto Profil -->[m
+[31m-    <div class="flex flex-col items-center mb-6">[m
+[31m-      {% if profile.photo_url %}[m
+[31m-        <img id="profile-photo" src="{{ profile.photo_url }}" alt="Foto Profil"[m
+[31m-             class="h-24 w-24 rounded-full object-cover shadow-md border border-[#0C2D57]/30 mb-3">[m
+[31m-      {% else %}[m
+[31m-        <img id="profile-photo" src="{% static 'img/defaultprofile.png' %}" alt="Default Foto"[m
+[31m-             class="h-24 w-24 rounded-full object-cover shadow-md border border-[#0C2D57]/30 mb-3">[m
+[31m-      {% endif %}[m
+[31m-      <p class="text-lg font-semibold text-[#0C2D57]">{{ request.user.username }}</p>[m
+[31m-      <p class="text-sm text-gray-500 capitalize">{{ profile.role }}</p>[m
+[31m-    </div>[m
+[32m+[m[32m<div class="flex justify-center mt-10 px-6">[m
+[32m+[m[32m  <div class="bg-white/90 backdrop-blur-md shadow-md rounded-2xl p-8 w-full max-w-6xl text-[#0C2D57] grid grid-cols-1 md:grid-cols-3 gap-12">[m
+[32m+[m[41m    [m
+[32m+[m[32m    <!-- ========== LEFT COLUMN: PROFILE INFO ========== -->[m
+[32m+[m[32m    <div class="col-span-1 flex flex-col items-center md:items-start">[m
+[32m+[m[32m      <h3 class="text-2xl font-semibold mb-5 text-[#0C2D57] border-b-2 border-[#F87E18] pb-1 text-center md:text-left">[m
+[32m+[m[32m        Informasi Profil[m
+[32m+[m[32m      </h3>[m
+ [m
+[31m-    <!-- Informasi Profil -->[m
+[31m-    <div class="overflow-x-auto mt-4">[m
+[31m-      <table class="w-full border-collapse text-left">[m
+[31m-        <tbody>[m
+[31m-          <tr class="border-b border-[#0C2D57]/20">[m
+[31m-            <td class="py-2 w-1/3 font-semibold text-[#F87E18]">Email</td>[m
+[31m-            <td id="profile-email" class="py-2 text-[#0C2D57] font-medium">{{ profile.email|default:"-" }}</td>[m
+[31m-          </tr>[m
+[31m-          <tr class="border-b border-[#0C2D57]/20">[m
+[31m-            <td class="py-2 font-semibold text-[#F87E18]">Nomor Telepon</td>[m
+[31m-            <td id="profile-phone" class="py-2 text-[#0C2D57] font-medium">{{ profile.phone|default:"-" }}</td>[m
+[32m+[m[32m      <div class="flex flex-col items-center md:items-start">[m
+[32m+[m[32m        {% if profile.photo_url %}[m
+[32m+[m[32m          <img id="profile-photo" src="{{ profile.photo_url }}" alt="Foto Profil"[m
+[32m+[m[32m              class="h-28 w-28 rounded-full object-cover shadow-md border-4 border-[#0C2D57]/30 mb-3">[m
+[32m+[m[32m        {% else %}[m
+[32m+[m[32m          <img id="profile-photo" src="{% static 'img/defaultprofile.png' %}" alt="Default Foto"[m
+[32m+[m[32m              class="h-28 w-28 rounded-full object-cover shadow-md border-4 border-[#0C2D57]/30 mb-3">[m
+[32m+[m[32m        {% endif %}[m
+[32m+[m[41m        [m
+[32m+[m[32m        <h2 class="text-2xl font-bold">{{ request.user.username }}</h2>[m
+[32m+[m[32m        <p class="text-base text-gray-500 capitalize">{{ profile.role }}</p>[m
+[32m+[m[41m        [m
+[32m+[m[32m        <!-- Bio pengguna -->[m
+[32m+[m[32m        {% if profile.bio %}[m
+[32m+[m[32m          <p id="profile-bio" class="text-base italic text-gray-600 mt-1">{{ profile.bio }}</p>[m
+[32m+[m[32m        {% else %}[m
+[32m+[m[32m          <p id="profile-bio" class="text-base italic text-gray-600 mt-1"></p>[m
+[32m+[m[32m        {% endif %}[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m
+[32m+[m[32m      <!-- Informasi kontak -->[m
+[32m+[m[32m      <div class="mt-6 w-full">[m
+[32m+[m[32m        <table class="text-base w-full">[m
+[32m+[m[32m          <tr>[m
+[32m+[m[32m            <td class="font-semibold w-32 align-top text-[#0C2D57]">Email</td>[m
+[32m+[m[32m            <td class="pr-2">:</td>[m
+[32m+[m[32m            <td id="profile-email" class="text-[#0C2D57] font-medium">[m
+[32m+[m[32m              {{ profile.email|default:"-" }}[m
+[32m+[m[32m            </td>[m
+           </tr>[m
+[31m-          <tr class="border-b border-[#0C2D57]/20">[m
+[31m-            <td class="py-2 font-semibold text-[#F87E18]">Alamat</td>[m
+[31m-            <td id="profile-address" class="py-2 text-[#0C2D57] font-medium">{{ profile.address|default:"-" }}</td>[m
+[32m+[m[32m          <tr>[m
+[32m+[m[32m            <td class="font-semibold align-top text-[#0C2D57]">No. Telepon</td>[m
+[32m+[m[32m            <td>:</td>[m
+[32m+[m[32m            <td id="profile-phone" class="text-[#0C2D57] font-medium">[m
+[32m+[m[32m              {{ profile.phone|default:"-" }}[m
+[32m+[m[32m            </td>[m
+           </tr>[m
+           <tr>[m
+[31m-            <td class="py-2 font-semibold text-[#F87E18]">Peran</td>[m
+[31m-            <td class="py-2 text-[#0C2D57] font-medium capitalize">{{ profile.role }}</td>[m
+[32m+[m[32m            <td class="font-semibold align-top text-[#0C2D57]">Alamat</td>[m
+[32m+[m[32m            <td>:</td>[m
+[32m+[m[32m            <td id="profile-address" class="text-[#0C2D57] font-medium">[m
+[32m+[m[32m              {{ profile.address|default:"-" }}[m
+[32m+[m[32m            </td>[m
+           </tr>[m
+[31m-        </tbody>[m
+[31m-      </table>[m
+[32m+[m[32m        </table>[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m[32m      <!-- Statistik -->[m
+[32m+[m[32m      <div class="mt-8 w-full space-y-3 border-t border-[#0C2D57]/20 pt-4">[m
+[32m+[m[32m        <div class="flex justify-between items-center text-lg">[m
+[32m+[m[32m          <span class="font-semibold text-[#F87E18]">Total Booking :</span>[m
+[32m+[m[32m          <span class="font-bold">12</span>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m        <div class="flex justify-between items-center text-lg">[m
+[32m+[m[32m          <span class="font-semibold text-[#F87E18]">Rata-Rata Rating :</span>[m
+[32m+[m[32m          <span class="font-bold">4.8</span>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m        <div class="flex justify-between items-center text-lg">[m
+[32m+[m[32m          <span class="font-semibold text-[#F87E18]">Bergabung :</span>[m
+[32m+[m[32m          <span class="font-bold">Apr 2024</span>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m[32m      <!-- Tombol Edit -->[m
+[32m+[m[32m      <div class="mt-6">[m
+[32m+[m[32m        <button id="edit-btn"[m
+[32m+[m[32m                class="bg-[#0C2D57] hover:bg-[#123872] text-white px-6 py-2 rounded-lg font-semibold transition">[m
+[32m+[m[32m          Ubah Profil[m
+[32m+[m[32m        </button>[m
+[32m+[m[32m      </div>[m
+     </div>[m
+ [m
+[31m-    <!-- Tombol Edit -->[m
+[31m-    <div class="mt-6">[m
+[31m-      <button id="edit-btn"[m
+[31m-              class="inline-block bg-[#0C2D57] hover:bg-[#09396a] text-white px-6 py-2 rounded-lg transition font-semibold">[m
+[31m-        Ubah Profil[m
+[31m-      </button>[m
+[32m+[m[32m    <!-- ========== RIGHT COLUMN: FRIEND LIST + REQUESTS ========== -->[m
+[32m+[m[32m    <div class="col-span-2 flex flex-col bg-white/70 shadow-inner rounded-xl p-6">[m
+[32m+[m[32m      <!-- Daftar Teman -->[m
+[32m+[m[32m      <div class="flex items-center justify-between mb-4">[m
+[32m+[m[32m        <h3 class="text-2xl font-semibold text-[#0C2D57]">Teman Saya (5)</h3>[m
+[32m+[m[32m        <button id="open-add-friend-btn"[m
+[32m+[m[32m                class="bg-[#F87E18] hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow transition font-semibold">[m
+[32m+[m[32m          Tambahkan Teman[m
+[32m+[m[32m        </button>[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m[32m      <div class="h-[400px] overflow-y-auto pr-2 space-y-4 no-scrollbar">[m
+[32m+[m[32m        {% for i in "12345" %}[m
+[32m+[m[32m        <div class="flex items-center bg-white shadow rounded-xl p-4 hover:scale-[1.01] transition">[m
+[32m+[m[32m          <img src="{% static 'img/defaultprofile.png' %}"[m[41m [m
+[32m+[m[32m               class="h-16 w-16 rounded-full object-cover border border-[#0C2D57]/30 mr-4">[m
+[32m+[m[32m          <div class="flex-grow">[m
+[32m+[m[32m            <p class="font-semibold text-[#0C2D57]">user{{ i }}</p>[m
+[32m+[m[32m            <p class="text-sm italic text-gray-500">"Teman padel tiap akhir pekan!"</p>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m          <div class="flex gap-2">[m
+[32m+[m[32m            <button class="text-sm bg-[#0C2D57] hover:bg-[#123872] text-white px-3.5 py-1.5 rounded-lg font-semibold transition w-24"[m
+[32m+[m[32m                    onclick="openChatModal('user{{ i }}')">Chat</button>[m
+[32m+[m[32m            <button class="text-sm bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-lg font-semibold transition w-24"[m
+[32m+[m[32m                    onclick="confirmUnfriend('user{{ i }}')">Unfriend</button>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m        {% endfor %}[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m[32m      <!-- Permintaan Pertemanan -->[m
+[32m+[m[32m      <div class="mt-10 border-t border-[#0C2D57]/10 pt-6">[m
+[32m+[m[32m        <h3 class="text-2xl font-semibold text-[#0C2D57] mb-4">Permintaan Pertemanan (2)</h3>[m
+[32m+[m[32m        <div class="space-y-3 max-h-[160px] overflow-y-auto pr-2 no-scrollbar">[m
+[32m+[m[32m          {% for i in "AB" %}[m
+[32m+[m[32m          <div class="flex items-center bg-white shadow rounded-xl p-4 hover:scale-[1.01] transition">[m
+[32m+[m[32m            <img src="{% static 'img/defaultprofile.png' %}"[m[41m [m
+[32m+[m[32m                 class="h-14 w-14 rounded-full object-cover border border-[#0C2D57]/30 mr-4">[m
+[32m+[m[32m            <div class="flex-grow">[m
+[32m+[m[32m              <p class="font-semibold text-[#0C2D57]">new_user{{ i }}</p>[m
+[32m+[m[32m              <p class="text-sm italic text-gray-500">"Ingin berteman denganmu!"</p>[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m            <div class="flex gap-2">[m
+[32m+[m[32m              <button class="text-sm bg-[#0C2D57] hover:bg-[#123872] text-white px-3.5 py-1.5 rounded-lg font-semibold transition">[m
+[32m+[m[32m                Terima[m
+[32m+[m[32m              </button>[m
+[32m+[m[32m              <button class="text-sm bg-gray-300 hover:bg-gray-400 text-[#0C2D57] px-3.5 py-1.5 rounded-lg font-semibold transition">[m
+[32m+[m[32m                Tolak[m
+[32m+[m[32m              </button>[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m          {% endfor %}[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </div>[m
+     </div>[m
+   </div>[m
+ </div>[m
+ [m
+[31m-<!-- Modal Edit Profil -->[m
+[32m+[m[32m<!-- ========== MODAL EDIT PROFIL========== -->[m
+ <div id="edit-modal"[m
+      class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50 flex items-center justify-center">[m
+   <div id="modal-content"[m
+[36m@@ -82,18 +175,147 @@[m
+         <label class="block font-semibold text-[#F87E18] mb-1">Link Foto Profil</label>[m
+         {{ form.photo_url }}[m
+       </div>[m
+[32m+[m[32m      <div>[m
+[32m+[m[32m        <label class="block font-semibold text-[#F87E18] mb-1">Bio</label>[m
+[32m+[m[32m        {{ form.bio }}[m
+[32m+[m[32m      </div>[m
+ [m
+       <button type="submit"[m
+         id="save-btn"[m
+[31m-        class="w-full bg-[#0C2D57] hover:bg-[#09396a] text-white font-semibold py-2 rounded-lg transition">[m
+[32m+[m[32m        class="w-full bg-[#0C2D57] hover:bg-[#123872] text-white font-semibold py-2 rounded-lg transition">[m
+         Simpan Perubahan[m
+       </button>[m
+     </form>[m
+   </div>[m
+ </div>[m
+ [m
+[31m-<!-- Script -->[m
+[32m+[m[32m<!-- ========== MODAL CHAT ========== -->[m
+[32m+[m[32m<div id="chat-modal" class="fixed inset-0 bg-black/40 hidden z-50 flex items-center justify-center backdrop-blur-sm">[m
+[32m+[m[32m  <div id="chat-content"[m
+[32m+[m[32m       class="bg-white rounded-2xl shadow-lg relative transform transition-all duration-300 ease-out scale-95 opacity-0 w-full max-w-3xl">[m
+[32m+[m[32m    <div class="bg-[#0C2D57] text-white rounded-t-2xl px-6 py-4 flex justify-between items-center">[m
+[32m+[m[32m      <h3 class="text-2xl font-semibold">Chat dengan <span id="chat-username" class="text-[#F87E18]">User</span></h3>[m
+[32m+[m[32m      <button id="close-chat" class="text-gray-300 hover:text-white text-2xl">✕</button>[m
+[32m+[m[32m    </div>[m
+[32m+[m
+[32m+[m[32m    <div id="chat-box" class="bg-gray-100 rounded-b-2xl p-6 h-[500px] overflow-y-auto space-y-3">[m
+[32m+[m[32m      <div class="flex justify-start">[m
+[32m+[m[32m        <div class="bg-gray-300 text-[#0C2D57] rounded-xl px-3 py-2 max-w-[70%]">Halo! Gimana kabarnya?</div>[m
+[32m+[m[32m      </div>[m
+[32m+[m[32m      <div class="flex justify-end">[m
+[32m+[m[32m        <div class="bg-[#0C2D57] text-white rounded-xl px-3 py-2 max-w-[70%]">Baik banget, siap booking lagi 😄</div>[m
+[32m+[m[32m      </div>[m
+[32m+[m[32m    </div>[m
+[32m+[m
+[32m+[m[32m    <div class="flex gap-2 border-t border-gray-300 p-4 bg-white rounded-b-2xl">[m
+[32m+[m[32m      <input id="chat-input" type="text" placeholder="Tulis pesan..."[m[41m [m
+[32m+[m[32m             class="flex-grow rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0C2D57]">[m
+[32m+[m[32m      <button id="chat-send"[m[41m [m
+[32m+[m[32m              class="bg-[#F87E18] hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition">Kirim</button>[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m  </div>[m
+[32m+[m[32m</div>[m
+[32m+[m
+[32m+[m[32m<!-- ========== MODAL UNFRIEND ========== -->[m
+[32m+[m[32m<div id="unfriend-modal" class="fixed inset-0 bg-black/40 hidden z-50 flex items-center justify-center backdrop-blur-sm">[m
+[32m+[m[32m  <div id="unfriend-content"[m[41m [m
+[32m+[m[32m       class="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg relative transform transition-all duration-300 ease-out scale-95 opacity-0 text-center">[m
+[32m+[m[32m    <h3 class="text-2xl font-semibold text-[#0C2D57] mb-4">Hapus Teman?</h3>[m
+[32m+[m[32m    <p id="unfriend-message" class="text-gray-600 mb-6">Apakah kamu yakin ingin menghapus teman ini?</p>[m
+[32m+[m[32m    <div class="flex justify-center gap-4">[m
+[32m+[m[32m      <button id="cancel-unfriend"[m[41m [m
+[32m+[m[32m              class="bg-gray-300 hover:bg-gray-400 text-[#0C2D57] px-4 py-2 rounded-lg font-semibold transition">Batal</button>[m
+[32m+[m[32m      <button id="confirm-unfriend"[m[41m [m
+[32m+[m[32m              class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition">Ya, Hapus</button>[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m  </div>[m
+[32m+[m[32m</div>[m
+[32m+[m
+[32m+[m[32m<!-- ========== MODAL TAMBAH TEMAN ========== -->[m
+[32m+[m[32m<div id="add-friend-modal" class="fixed inset-0 bg-black/40 hidden z-50 flex items-center justify-center backdrop-blur-sm">[m
+[32m+[m[32m  <div id="add-friend-content"[m[41m [m
+[32m+[m[32m       class="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-lg relative transform transition-all duration-300 ease-out scale-95 opacity-0">[m
+[32m+[m[32m    <button id="close-add-friend" class="absolute top-3 right-4 text-gray-500 hover:text-gray-800 text-xl">✕</button>[m
+[32m+[m[32m    <h3 class="text-2xl font-semibold text-[#0C2D57] mb-4 text-center">Tambahkan Teman</h3>[m
+[32m+[m
+[32m+[m[32m    <div class="flex gap-2 mb-5">[m
+[32m+[m[32m      <input id="friend-search-input" type="text" placeholder="Cari berdasarkan username..."[m[41m [m
+[32m+[m[32m             class="flex-grow rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0C2D57]">[m
+[32m+[m[32m      <button id="friend-search-btn"[m[41m [m
+[32m+[m[32m              class="bg-[#0C2D57] hover:bg-[#123872] text-white px-4 py-2 rounded-lg font-semibold transition">Cari</button>[m
+[32m+[m[32m    </div>[m
+[32m+[m
+[32m+[m[32m    <div id="friend-search-result" class="mb-8 min-h-[80px] text-center">[m
+[32m+[m[32m      <p class="text-gray-400 italic">Ketik username dan tekan Cari.</p>[m
+[32m+[m[32m    </div>[m
+[32m+[m
+[32m+[m[32m    <div class="border-t border-gray-200 pt-4">[m
+[32m+[m[32m      <h4 class="text-lg font-semibold text-[#0C2D57] mb-3">Saran Teman</h4>[m
+[32m+[m[32m      <div id="suggestCarouselModal" class="flex overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar px-6">[m
+[32m+[m[32m        {% for i in "abcdefghijk" %}[m
+[32m+[m[32m        <div class="flex-none w-48 mx-2 bg-white shadow rounded-xl p-4 flex flex-col items-center text-center hover:scale-[1.03] transition snap-center">[m
+[32m+[m[32m          <img src="{% static 'img/defaultprofile.png' %}"[m[41m [m
+[32m+[m[32m               class="h-16 w-16 rounded-full object-cover border border-[#0C2D57]/30 mb-2">[m
+[32m+[m[32m          <p class="font-semibold text-[#0C2D57] text-sm">user{{ i }}</p>[m
+[32m+[m[32m          <p class="text-xs italic text-gray-500 mb-2">"Sering booking di 
