@@ -96,6 +96,8 @@ def profile_view(request):
 def profile_json(request):
     profile = request.user.profile
     return JsonResponse({
+        'username': request.user.username,
+        "role": profile.role,
         'success': True,
         'message': 'Profil berhasil diperbarui!',
         'email': profile.email,
