@@ -1,7 +1,0 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container mt-5">
-  <h2>Venue Owner Dashboard</h2>
-  <p>Welcome, {{ user.username }}! You can add or manage your venues here.</p>
-</div>
-{% endblock %}

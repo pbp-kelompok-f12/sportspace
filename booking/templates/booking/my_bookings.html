@@ -173,8 +173,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for success message from previous operations
     const successMessage = sessionStorage.getItem('booking_success');
     if (successMessage) {
-        showToast(successMessage, 'success');
-        sessionStorage.removeItem('booking_success');
+        // Show toast after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            showToast(successMessage, true);
+            sessionStorage.removeItem('booking_success');
+        }, 100);
     }
     
     const editBtns = document.querySelectorAll('.edit-booking-btn');
@@ -235,11 +238,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 sessionStorage.setItem('booking_success', data.message);
                 window.location.reload();
             } else {
-                showToast(data.message, 'error');
+                showToast(data.message, false);
             }
         })
         .catch(error => {
-            showToast('Terjadi kesalahan', 'error');
+            console.error('Error updating booking:', error);
+            showToast('Terjadi kesalahan', false);
         });
     });
     
@@ -259,17 +263,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 sessionStorage.setItem('booking_success', data.message);
                 window.location.reload();
             } else {
-                showToast(data.message, 'error');
+                showToast(data.message, false);
             }
         })
         .catch(error => {
-            showToast('Terjadi kesalahan', 'error');
+            console.error('Error deleting booking:', error);
+            showToast('Terjadi kesalahan', false);
         });
     });
     
     // Handle modal close
     cancelEdit.addEventListener('click', () => editModal.classList.add('hidden'));
     cancelDelete.addEventListener('click', () => deleteModal.classList.add('hidden'));
+    
     
 });
 </script>

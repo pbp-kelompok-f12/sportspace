@@ -71,7 +71,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-GOOGLE_MAPS_API_KEY = 'AIzaSyB-EBEHoKCnM1BkHC8eD1F3zwbV7uB86-c'
+# Google Maps API Key - use environment variable for production
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', 'AIzaSyB-EBEHoKCnM1BkHC8eD1F3zwbV7uB86-c')
 
 ROOT_URLCONF = 'sportspace.urls'
 
@@ -91,9 +92,10 @@ TEMPLATES = [
     },
 ]
 
-GOOGLE_MAPS_API_KEY = 'AIzaSyB-EBEHoKCnM1BkHC8eD1F3zwbV7uB86-c'
+# Remove duplicate - already set above
 
 WSGI_APPLICATION = 'sportspace.wsgi.application'
+
 
 
 # Database
@@ -143,6 +145,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -170,7 +173,7 @@ else:
     STATIC_ROOT = BASE_DIR / 'static' # merujuk ke /static root project pada mode production
 
 # Auth redirects
-LOGIN_URL = '/login/'
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/home/'
 LOGOUT_REDIRECT_URL = '/'
 

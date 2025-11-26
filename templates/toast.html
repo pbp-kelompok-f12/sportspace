@@ -1,109 +1,150 @@
-{% load static %}
 <!-- Toast Container -->
-<div id="toast-container" class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 items-end pointer-events-none"></div>
+<div id="toast-container" class="fixed top-6 right-6 z-50 space-y-3"></div>
 
 <style>
-  /* Style utama toast */
   .toast {
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 1rem;
-    min-width: 280px;
-    max-width: 380px;
-    padding: 1rem 1.25rem;
+    min-width: 400px;
+    max-width: 500px;
+    padding: 1rem 1.5rem;
     border-radius: 0.75rem;
     color: white;
     font-weight: 500;
     pointer-events: auto;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
-    border-left: 6px solid;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     opacity: 0;
-    transform: translateY(40%) scale(0.95);
-    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
   }
 
   .toast.show {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(0);
   }
 
-  .toast.hide {
-    opacity: 0;
-    transform: translateY(50%) scale(0.9);
-  }
-
-  /* Warna dengan tema SportSpace */
   .toast-success {
-    background: linear-gradient(135deg, #F87E18, #f8a74d);
-    border-color: #F87E18;
+    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+    border-left: 4px solid #FB923C;
   }
 
   .toast-error {
-    background: linear-gradient(135deg, #0C2D57, #164e8b);
-    border-color: #0C2D57;
+    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+    border-left: 4px solid #FB923C;
   }
 
-  .toast-info {
-    background: linear-gradient(135deg, #09396A, #1668b4);
-    border-color: #09396A;
+  .toast-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
   }
 
-  .toast-default {
-    background: rgba(71, 85, 105, 0.9);
-    border-color: #64748B;
+  .toast-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: bold;
+    flex-shrink: 0;
   }
 
-  .toast button {
-    background: transparent;
+  .toast-message {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: white;
+    flex: 1;
+  }
+
+  .toast-close {
+    background: rgba(255, 255, 255, 0.1);
     border: none;
     color: white;
     cursor: pointer;
-    transition: opacity 0.2s ease;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
   }
 
-  .toast button:hover {
-    opacity: 0.7;
+  .toast-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }
+
+  .toast-close:active {
+    transform: scale(0.95);
+  }
+
+  /* Orange glow effect for success */
+  .toast-success {
+    box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+  }
+
+  /* Orange glow effect for error */
+  .toast-error {
+    box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
   }
 </style>
 
 <script>
-function showToast(message, type = 'success', duration = 4000) {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-
-  const toast = document.createElement('div');
-  toast.classList.add('toast');
-  toast.classList.add(
-    type === 'success'
-      ? 'toast-success'
-      : type === 'error'
-      ? 'toast-error'
-      : type === 'info'
-      ? 'toast-info'
-      : 'toast-default'
-  );
-
-  toast.innerHTML = `
-    <span>${message}</span>
-    <button onclick="this.closest('.toast').remove()" aria-label="Close">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
-  `;
-
-  container.appendChild(toast);
-
-  // Pastikan animasi terlihat
-  setTimeout(() => toast.classList.add('show'), 10);
-
-  // Hilang otomatis
-  setTimeout(() => {
-    toast.classList.add('hide');
-    setTimeout(() => toast.remove(), 500);
-  }, duration);
+// Orange toast function with wide design
+function showToast(message, isSuccess = true) {
+    const container = document.getElementById('toast-container');
+    if (!container) {
+        console.error('Toast container not found');
+        alert(message);
+        return;
+    }
+    
+    // Create toast element with wide design
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${isSuccess ? 'success' : 'error'}`;
+    
+    const icon = isSuccess ? '✓' : '✕';
+    
+    toast.innerHTML = `
+        <div class="toast-content">
+            <div class="toast-icon">${icon}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    // Add to container
+    container.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 300);
+        }
+    }, 4000);
 }
 </script>

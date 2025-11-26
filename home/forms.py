@@ -3,15 +3,29 @@ from django import forms
 from .models import LapanganPadel
 
 class LapanganPadelForm(forms.ModelForm):
+    # --- TAMBAHKAN METODE __init__ INI ---
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Jika form ini untuk instance yang sudah ada (mode edit)
+        if self.instance and self.instance.pk:
+            # Jadikan place_id read-only
+            self.fields['place_id'].widget.attrs['readonly'] = True
+            self.fields['place_id'].widget.attrs['style'] = 'background-color: #e9ecef;' # Beri warna abu-abu
+        else:
+            # Jika ini form baru (mode add), sembunyikan field place_id
+            # Kita akan generate nilainya di view
+            self.fields.pop('place_id')
+
     class Meta:
         model = LapanganPadel
-        fields = ['place_id', 'nama', 'alamat', 'rating', 'total_review', 
-                  'thumbnail_url', 'notes', 'is_featured']
+        # Hapus 'place_id' dari sini karena kita atur secara dinamis di __init__
+        fields = ['nama', 'alamat', 'rating', 'total_review', 
+                  'thumbnail_url', 'notes', 'is_featured', 'place_id'] # Tetap ada untuk mode edit
         
         widgets = {
             'place_id': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Google Maps Place ID'
             }),
             'nama': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -47,7 +61,7 @@ class LapanganPadelForm(forms.ModelForm):
         }
         
         labels = {
-            'place_id': 'Place ID',
+            'place_id': 'Place ID (Otomatis)',
             'nama': 'Nama Lapangan',
             'alamat': 'Alamat',
             'rating': 'Rating (0-5)',

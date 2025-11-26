@@ -1,0 +1,60 @@
+<!-- spinner.html -->
+<div id="loading-overlay"
+     class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#002B4F]/95 backdrop-blur-sm transition-opacity duration-700 opacity-0 pointer-events-none">
+  
+  <!-- Spinner modern elegan -->
+  <div class="relative w-20 h-20">
+    <div class="absolute inset-0 rounded-full border-4 border-t-transparent border-r-transparent border-[#F87E18] animate-spin"></div>
+    <div class="absolute inset-1 rounded-full border-4 border-b-transparent border-l-transparent border-[#00BFFF] animate-spin-slow blur-[1px] opacity-80"></div>
+  </div>
+
+  <!-- Teks animasi -->
+  <p class="mt-8 text-lg font-semibold tracking-wide text-gray-200 animate-pulse">
+    Loading <span class="text-[#F87E18]">SportSpace</span>...
+  </p>
+</div>
+
+<style>
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const loader = document.getElementById("loading-overlay");
+    const alreadyShown = sessionStorage.getItem("sportspaceLoaded");
+    let showTimeout;
+
+    if (!alreadyShown) {
+      // Tunda spinner 0.5 detik agar tidak muncul untuk load cepat
+      showTimeout = setTimeout(() => {
+        loader.style.opacity = "1";
+        loader.style.pointerEvents = "auto";
+        document.body.style.overflow = "hidden";
+      }, 500);
+
+      // Hilangkan saat halaman selesai dimuat
+      window.addEventListener("load", function() {
+        clearTimeout(showTimeout);
+        if (loader.style.opacity === "1") {
+          loader.style.opacity = "0";
+          setTimeout(() => {
+            loader.style.display = "none";
+            document.body.style.overflow = "auto";
+          }, 700);
+        } else {
+          loader.style.display = "none";
+          document.body.style.overflow = "auto";
+        }
+        sessionStorage.setItem("sportspaceLoaded", "true");
+      });
+    } else {
+      loader.style.display = "none";
+    }
+  });
+</script>
