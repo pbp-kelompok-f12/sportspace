@@ -10,6 +10,9 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('profile/json/', views.profile_json, name='profile_json'),
 
+    path('login-flutter/', views.login_flutter, name='login_flutter'), 
+    path('register-flutter/', views.register_flutter, name='register_flutter'),
+
     path("friends/send/", views.send_friend_request, name="send_friend_request"),
     path("handle-friend-request/", views.handle_friend_request, name="handle_friend_request"),
     path("friends/", views.friends_json, name="friends_json"),
