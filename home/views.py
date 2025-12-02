@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.core import serializers
 from .models import LapanganPadel
+from booking.models import Venue
 from .forms import LapanganPadelForm
 
 def get_google_maps_data(query="lapangan padel di jakarta"):
@@ -120,6 +121,32 @@ def get_lapangan_by_id(request, id):
         return JsonResponse(data)
     except LapanganPadel.DoesNotExist:
         return JsonResponse({'error': 'Lapangan not found'}, status=404)
+
+
+@login_required(login_url='/accounts/login/')
+def lapangan_to_venue(request, id):
+    """
+    Small helper API for mobile to map LapanganPadel pk to booking.Venue UUID.
+    We use place_id and name/address to find or create a Venue via the
+    existing sync logic.
+    """
+    try:
+        lapangan = LapanganPadel.objects.get(pk=id)
+    except LapanganPadel.DoesNotExist:
+        return JsonResponse({'error': 'Lapangan not found'}, status=404)
+
+    # Try to find existing Venue with same name & address
+    venue, _ = Venue.objects.get_or_create(
+        name=lapangan.nama,
+        defaults={
+            'location': lapangan.alamat,
+            'address': lapangan.alamat,
+            'image_url': lapangan.thumbnail_url,
+            'description': f'Padel court located at {lapangan.alamat}',
+        },
+    )
+
+    return JsonResponse({'venue_id': str(venue.id)})
 
 
 @csrf_exempt
