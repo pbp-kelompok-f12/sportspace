@@ -222,3 +222,78 @@ def refresh_from_api(request):
         
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+
+def proxy_image(request):
+    image_url = request.GET.get('url')
+    if not image_url:
+        return HttpResponse('No URL provided', status=400)
+    
+    try:
+        # Fetch image from external source
+        response = requests.get(image_url, timeout=10)
+        response.raise_for_status()
+        
+        # Return the image with proper content type
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get('Content-Type', 'image/jpeg')
+        )
+    except requests.RequestException as e:
+        return HttpResponse(f'Error fetching image: {str(e)}', status=500)
+
+
+@csrf_exempt
+def create_lapangan_flutter(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+
+            place_id = strip_tags(data.get("place_id", ""))
+            nama = strip_tags(data.get("nama", ""))
+            alamat = strip_tags(data.get("alamat", ""))
+            rating = data.get("rating", None)
+            total_review = data.get("total_review", None)
+            thumbnail_url = data.get("thumbnail_url", "")
+            notes = strip_tags(data.get("notes", ""))
+            is_featured = data.get("is_featured", False)
+            user = request.user
+
+            if not place_id or not nama or not alamat:
+                return JsonResponse({"status": "error", "message": "Place ID, Nama, dan Alamat tidak boleh kosong."}, status=400)
+
+            lapangan = LapanganPadel(
+                place_id=place_id,
+                nama=nama,
+                alamat=alamat,
+                rating=rating,
+                total_review=total_review,
+                thumbnail_url=thumbnail_url,
+                notes=notes,
+                is_featured=is_featured,
+                added_by=user if user.is_authenticated else None,
+            )
+            lapangan.save()
+
+            return JsonResponse({"status": "success", "message": "Lapangan berhasil dibuat"}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"status": "error", "message": "Format JSON tidak valid"}, status=400)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    else:
+        return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+
+@login_required
+def show_my_lapangan_json(request):
+    my_lapangan = LapanganPadel.objects.filter(added_by=request.user)
+    data = serializers.serialize(
+        "json",
+        my_lapangan,
+        fields=(
+            'place_id', 'nama', 'alamat', 'rating', 'total_review',
+            'thumbnail_url', 'notes', 'is_featured', 'created_at', 'updated_at', 'added_by'
+        )
+    )
+    return HttpResponse(data, content_type="application/json")
