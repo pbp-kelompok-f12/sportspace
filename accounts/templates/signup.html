@@ -3,42 +3,94 @@
 {% load widget_tweaks %}
 
 {% block content %}
-<section class="w-full flex items-stretch flex-grow overflow-hidden">
-  <!-- sisi oranye -->
-  <div class="hidden md:flex w-2/5 bg-gradient-to-b from-orange-500 to-orange-300 
-              items-center justify-center p-8 min-h-full animate-slide-in">
+<section class="relative w-full flex flex-col md:flex-row items-stretch min-h-screen overflow-hidden">
+
+  <!-- sisi oranye dengan motif -->
+  <div class="hidden md:flex w-2/5 relative items-center justify-center p-8 animate-slide-in"
+       style="
+         background-image: 
+           linear-gradient(to bottom, rgba(249, 115, 22, 0.55), rgba(253, 186, 116, 0.55)),
+           url('{% static 'img/orangemotif.jpg' %}');
+         background-size: cover;
+         background-position: center;
+         background-repeat: no-repeat;
+       ">
     <img src="{% static 'img/logowtext.png' %}" 
-         class="rounded-2xl shadow-xl transform -rotate-6 scale-90 transition-transform duration-1000 ease-out animate-logo-spin" 
+         class="max-w-[280px] xl:max-w-[350px] rounded-2xl shadow-2xl transform -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-700 ease-out animate-logo-spin" 
          alt="SportSpace"/>
   </div>
 
   <!-- sisi form -->
-  <div class="flex-1 flex items-center justify-center py-16">
-    <div class="bg-white/90 text-[#0C2D57] rounded-2xl p-10 w-full max-w-xl shadow-xl backdrop-blur-sm animate-fade-up">
-      <h1 class="text-4xl font-extrabold text-center text-orange-500 mb-8 animate-fade-in-delay">
+  <div class="flex-1 flex items-center justify-center py-20 px-6 md:px-16">
+    <div class="bg-white/95 text-[#0C2D57] rounded-3xl p-12 w-full max-w-2xl shadow-2xl backdrop-blur-sm animate-fade-up">
+      <h1 class="text-5xl font-extrabold text-center text-orange-500 mb-10 tracking-tight animate-fade-in-delay">
         Sign Up
       </h1>
-      <form method="post" class="space-y-5 animate-fade-in-delay2">
+
+      <form method="post" class="space-y-6 animate-fade-in-delay2">
         {% csrf_token %}
         {{ form.non_field_errors }}
 
         {% for field in form %}
-          <div>
-            <label class="block text-sm font-semibold mb-1">{{ field.label }}</label>
-            {% render_field field class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-lime-400 transition duration-300" %}
-            {% if field.errors %}
-              <p class="text-red-500 text-sm mt-1">{{ field.errors|striptags }}</p>
+          
+{% if field.name == "role" %}
+  <div class="space-y-4">
+    <label class="block text-lg font-semibold mb-2 text-[#0C2D57]">Select Your Role</label>
+    <div class="flex flex-col sm:flex-row justify-center md:justify-start gap-4 w-full">
+      {% for choice in field.field.choices %}
+        <label class="cursor-pointer flex-1">
+          <input type="radio" 
+                 name="{{ field.html_name }}" 
+                 value="{{ choice.0 }}" 
+                 class="peer hidden"
+                 {% if field.value == choice.0 %}checked{% endif %} />
+
+          <div class="flex flex-col items-center justify-center text-center border-2 border-gray-300 rounded-2xl 
+                      bg-gray-100 py-4 px-6 shadow-sm text-[#0C2D57] font-semibold text-lg 
+                      hover:border-[#FDBA74] hover:bg-[#FFF5EF] 
+                      transition-all duration-300 ease-out
+                      peer-checked:border-transparent peer-checked:text-[#0C2D57]
+                      peer-checked:bg-gradient-to-r peer-checked:from-[#F97316] peer-checked:to-[#FDBA74]
+                      peer-checked:shadow-[0_4px_16px_rgba(249,115,22,0.4)] peer-checked:scale-[1.02]">
+            
+            {% if choice.0 == 'customer' %}
+              <i class="fa-solid fa-user text-2xl mb-2"></i>
+            {% else %}
+              <i class="fa-solid fa-building text-2xl mb-2"></i>
             {% endif %}
+            <span>{{ choice.1 }}</span>
           </div>
+        </label>
+      {% endfor %}
+    </div>
+  </div>
+{% else %}
+
+
+            <!-- Input fields -->
+            <div class="space-y-2">
+              <label class="font-semibold text-lg">{{ field.label }}</label>
+              {% render_field field class="w-full px-5 py-4 rounded-2xl bg-gray-100 border border-gray-300 focus:outline-none focus:ring-4 focus:ring-lime-400/60 text-gray-800 placeholder-gray-500 transition duration-300 text-lg shadow-sm" %}
+              {% if field.errors %}
+                <p class="text-red-500 text-sm mt-1">{{ field.errors|striptags }}</p>
+              {% endif %}
+            </div>
+          {% endif %}
         {% endfor %}
 
-        <button class="w-full bg-lime-500 hover:bg-lime-600 hover:shadow-lg hover:scale-[1.02] text-white font-semibold py-3 rounded-full transition-all duration-300 ease-out">
-          Create Account
+        <button class="w-full bg-gradient-to-r from-lime-400 to-yellow-300 hover:from-lime-500 hover:to-yellow-400 
+                        text-[#0C2D57] font-extrabold text-xl uppercase tracking-wide
+                        py-4 rounded-full shadow-[0_4px_20px_rgba(163,230,53,0.5)]
+                        hover:shadow-[0_6px_25px_rgba(255,255,255,0.4)]
+                        transition-all duration-500 ease-out transform hover:-translate-y-1 hover:scale-105 relative overflow-hidden group">
+          <span class="relative z-10">Create Account</span>
+          <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out rounded-full"></span>
         </button>
       </form>
-      <p class="text-center mt-5 animate-fade-in-delay3">
+
+      <p class="text-center mt-8 animate-fade-in-delay3 text-base">
         Already have an account? 
-        <a class="text-blue-600 font-semibold hover:underline transition duration-300" href="{% url 'login' %}">
+        <a class="text-lime-500 font-semibold hover:underline transition duration-300" href="{% url 'login' %}">
           Log In
         </a>
       </p>
@@ -47,71 +99,24 @@
 </section>
 
 <style>
-  /* --- Sisi oranye masuk dari kiri --- */
   @keyframes slideIn {
-    0% {
-      opacity: 0;
-      transform: translateX(-100%);
-    }
-    100% {
-      opacity: 1;
-      transform: translateX(0);
-    }
+    0% { opacity: 0; transform: translateX(-100%); }
+    100% { opacity: 1; transform: translateX(0); }
   }
-  .animate-slide-in {
-    animation: slideIn 1s ease-out forwards;
-  }
+  .animate-slide-in { animation: slideIn 1s ease-out forwards; }
 
-  /* --- Logo berputar halus --- */
   @keyframes logoSpin {
-    0% {
-      transform: rotate(-20deg) scale(0.8);
-      opacity: 0;
-    }
-    50% {
-      transform: rotate(10deg) scale(1);
-      opacity: 1;
-    }
-    100% {
-      transform: rotate(-6deg) scale(0.9);
-      opacity: 1;
-    }
+    0% { transform: rotate(-20deg) scale(0.8); opacity: 0; }
+    50% { transform: rotate(10deg) scale(1); opacity: 1; }
+    100% { transform: rotate(-6deg) scale(0.9); opacity: 1; }
   }
-  .animate-logo-spin {
-    animation: logoSpin 1.2s ease-out forwards;
-  }
+  .animate-logo-spin { animation: logoSpin 1.2s ease-out forwards; }
 
-  /* --- Card form naik perlahan --- */
   @keyframes fadeUp {
-    0% {
-      opacity: 0;
-      transform: translateY(40px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    0% { opacity: 0; transform: translateY(40px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
-  .animate-fade-up {
-    animation: fadeUp 1s ease-out forwards;
-  }
+  .animate-fade-up { animation: fadeUp 1s ease-out forwards; }
+  </style>
 
-  /* --- Fade-in bertahap --- */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .animate-fade-in-delay {
-    animation: fadeIn 1.2s ease-out 0.4s forwards;
-    opacity: 0;
-  }
-  .animate-fade-in-delay2 {
-    animation: fadeIn 1.2s ease-out 0.8s forwards;
-    opacity: 0;
-  }
-  .animate-fade-in-delay3 {
-    animation: fadeIn 1.2s ease-out 1.2s forwards;
-    opacity: 0;
-  }
-</style>
-{% endblock %}
+  {% endblock %}

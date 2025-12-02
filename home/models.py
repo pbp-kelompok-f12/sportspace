@@ -6,7 +6,8 @@ class LapanganPadel(models.Model):
     place_id = models.CharField(
         max_length=255, 
         unique=True, 
-        help_text="Google Maps Place ID, untuk mencegah duplikat"
+        help_text="Google Maps Place ID, untuk mencegah duplikat",
+        null=True, blank=True
     )
     nama = models.CharField(max_length=200)
     alamat = models.CharField(max_length=300)

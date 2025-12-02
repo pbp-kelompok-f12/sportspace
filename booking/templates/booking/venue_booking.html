@@ -148,8 +148,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for success message from previous booking
     const successMessage = sessionStorage.getItem('booking_success');
     if (successMessage) {
-        showToast(successMessage, 'success');
-        sessionStorage.removeItem('booking_success');
+        // Show toast after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            showToast(successMessage, true);
+            sessionStorage.removeItem('booking_success');
+        }, 100);
     }
     
     const timeSlotBtns = document.querySelectorAll('.time-slot-btn:not([disabled])');
@@ -214,11 +217,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Refresh the page to update time slot availability
                 window.location.reload();
             } else {
-                showToast(data.message, 'error');
+                showToast(data.message, false);
             }
         })
         .catch(error => {
-            showToast('Terjadi kesalahan', 'error');
+            showToast('Terjadi kesalahan', false);
         });
     });
     
