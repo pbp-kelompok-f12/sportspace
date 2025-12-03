@@ -84,6 +84,7 @@ def register_flutter(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         username = data['username']
+        email = data['email']
         password1 = data['password1']
         password2 = data['password2']
 
@@ -102,7 +103,7 @@ def register_flutter(request):
             }, status=400)
         
         # Create the new user
-        user = User.objects.create_user(username=username, password=password1)
+        user = User.objects.create_user(username=username, email=email, password=password1)
         user.save()
         
         return JsonResponse({
