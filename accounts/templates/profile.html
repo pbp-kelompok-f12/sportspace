@@ -256,23 +256,19 @@
       <button id="close-chat" class="text-gray-300 hover:text-white text-2xl">✕</button>
     </div>
 
-    <div id="chat-box" class="bg-gray-100 rounded-b-2xl p-6 h-[500px] overflow-y-auto space-y-3">
-      <div class="flex justify-start">
-        <div class="bg-gray-300 text-[#0C2D57] rounded-xl px-3 py-2 max-w-[70%]">Halo! Gimana kabarnya?</div>
-      </div>
-      <div class="flex justify-end">
-        <div class="bg-[#0C2D57] text-white rounded-xl px-3 py-2 max-w-[70%]">Baik banget, siap booking lagi 😄</div>
-      </div>
-    </div>
+    <div id="chat-box" class="bg-gray-100 rounded-b-2xl p-6 h-[500px] overflow-y-auto space-y-3"></div>
 
     <div class="flex gap-2 border-t border-gray-300 p-4 bg-white rounded-b-2xl">
       <input id="chat-input" type="text" placeholder="Tulis pesan..." 
-             class="flex-grow rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0C2D57]">
+       class="flex-grow rounded-lg border border-gray-300 px-3 py-2 
+              text-black bg-white placeholder-gray-400 
+              focus:outline-none focus:ring-1 focus:ring-[#0C2D57]">
       <button id="chat-send" 
               class="bg-[#F87E18] hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition">Kirim</button>
     </div>
   </div>
 </div>
+
 
 <!-- ========== MODAL KONFIRMASI UNFRIEND ========== -->
 <div id="unfriend-modal" class="fixed inset-0 bg-black/40 hidden z-50 flex items-center justify-center backdrop-blur-sm">
@@ -312,27 +308,21 @@
         Cari
       </button>
     </div>
+    <div id="friend-search-result" class="mt-4 space-y-3"></div>
 
     <div class="border-t border-gray-200 pt-4">
-      <h4 class="text-lg font-semibold text-[#0C2D57] mb-3">Saran Teman</h4>
-      <div id="suggestCarouselModal" class="flex overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar px-6">
-        {% for s in suggestions %}
-        <div class="flex-none w-48 mx-2 bg-white shadow rounded-xl p-4 flex flex-col items-center text-center hover:scale-[1.03] transition snap-center">
-          <img src="{{ s.photo_url|default:'/static/img/defaultprofile.png' }}" 
-              class="h-16 w-16 rounded-full object-cover border border-[#0C2D57]/30 mb-2">
+      <div class="flex justify-between items-center mb-3">
+        <h4 class="text-lg font-semibold text-[#0C2D57]">Saran Teman</h4>
+        <button 
+          id="refresh-suggestions"
+          class="text-sm text-[#F87E18] hover:text-orange-600 font-semibold transition">
+          Muat Ulang
+        </button>
+      </div>
 
-          <p class="font-semibold text-[#0C2D57] text-sm">{{ s.user.username }}</p>
-          <p class="text-xs italic text-gray-500 mb-2">"{{ s.bio|default:'Aktif bermain padel!'}}"</p>
-
-          <button 
-            class="text-xs bg-[#F87E18] hover:bg-orange-600 text-white px-3 py-1 rounded-lg shadow font-semibold transition"
-            onclick="sendFriendRequest('{{ s.user.username }}')">
-            Tambah
-          </button>
-        </div>
-        {% empty %}
-        <p class="text-gray-500 italic text-center mt-3 w-full">Tidak ada saran teman saat ini.</p>
-        {% endfor %}
+      <div id="suggestCarouselModal"
+          class="flex overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar px-6 space-x-3">
+        <p class="text-gray-500 italic text-center w-full">Memuat saran teman...</p>
       </div>
     </div>
 
@@ -596,41 +586,52 @@ async function sendFriendRequest(username) {
   });
 
   /* ======= LOAD FRIEND LIST VIA AJAX ======= */
-  async function loadFriendList() {
-    try {
-      const response = await fetch("/accounts/friends/");
-      const data = await response.json();
-      const friendList = document.getElementById("friend-list");
-      friendList.innerHTML = "";
+async function loadFriendList() {
+  try {
+    const response = await fetch("/accounts/friends/");
+    const data = await response.json();
+    const friendList = document.getElementById("friend-list");
+    friendList.innerHTML = "";
 
-      if (data.friends.length === 0) {
-        friendList.innerHTML = `<p class="text-gray-500 italic text-center mt-8">Kamu belum punya teman 😢</p>`;
-        return;
-      }
-
-      data.friends.forEach(friend => {
-        const card = document.createElement("div");
-        card.className = "flex items-center bg-white shadow rounded-xl p-4 hover:scale-[1.01] transition";
-        card.innerHTML = `
-          <img src="${friend.photo_url}" class="h-16 w-16 rounded-full object-cover border border-[#0C2D57]/30 mr-4">
-          <div class="flex-grow">
-            <p class="font-semibold text-[#0C2D57]">${friend.username}</p>
-            <p class="text-sm italic text-gray-500">"${friend.bio}"</p>
-          </div>
-          <div class="flex gap-2">
-            <button class="text-sm bg-[#0C2D57] hover:bg-[#123872] text-white px-3.5 py-1.5 rounded-lg font-semibold transition w-24"
-                    onclick="openChatModal('${friend.username}')">Chat</button>
-            <button class="unfriend-btn text-sm bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-lg font-semibold transition w-24"
-                    data-username="${friend.username}">Unfriend</button>
-          </div>
-        `;
-        friendList.appendChild(card);
-      });
-
-    } catch {
-      showToast("Gagal memuat daftar teman.", "error");
+    if (!data.friends || data.friends.length === 0) {
+      friendList.innerHTML = `<p class="text-gray-500 italic text-center mt-8">Kamu belum punya teman 😢</p>`;
+      return;
     }
+
+    data.friends.forEach(friend => {
+      const card = document.createElement("div");
+      card.className = "flex items-center bg-white shadow rounded-xl p-4 hover:scale-[1.01] transition";
+      card.innerHTML = `
+        <img src="${friend.photo_url || '/static/img/defaultprofile.png'}"
+             class="h-16 w-16 rounded-full object-cover border border-[#0C2D57]/30 mr-4">
+
+        <div class="flex-grow">
+          <p class="font-semibold text-[#0C2D57]">${friend.username}</p>
+          <p class="text-sm italic text-gray-500">"${friend.bio || 'Teman padel tiap akhir pekan!'}"</p>
+        </div>
+
+        <div class="flex gap-2">
+          <button 
+            class="text-sm bg-[#0C2D57] hover:bg-[#123872] text-white px-3.5 py-1.5 rounded-lg font-semibold transition w-24"
+            onclick="openChatModal('${friend.username}')">
+            Chat
+          </button>
+
+          <button 
+            class="unfriend-btn text-sm bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-lg font-semibold transition w-24"
+            data-username="${friend.username}">
+            Unfriend
+          </button>
+        </div>
+      `;
+      friendList.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error(err);
+    showToast("Gagal memuat daftar teman.", "error");
   }
+}
 
   document.addEventListener("DOMContentLoaded", loadFriendList);
 
@@ -713,24 +714,113 @@ let currentUserToUnfriend = null;
     });
   }
 });
+/* ======= CHAT MODAL & SYSTEM ======= */
+const chatModal = document.getElementById("chat-modal");
+const chatContent = document.getElementById("chat-content");
+const chatUsername = document.getElementById("chat-username");
+const closeChatBtn = document.getElementById("close-chat");
 
-  /* ======= CHAT MODAL ======= */
-  const chatModal = document.getElementById('chat-modal');
-  const chatContent = document.getElementById('chat-content');
-  const chatUsername = document.getElementById('chat-username');
-  const closeChatBtn = document.getElementById('close-chat');
+const chatBox = document.getElementById("chat-box");
+const chatInput = document.getElementById("chat-input");
+const chatSendBtn = document.getElementById("chat-send");
 
-  function openChatModal(username) {
-    chatUsername.textContent = username;
-    chatModal.classList.remove('hidden');
-    requestAnimationFrame(() => {
-      chatContent.classList.remove('scale-95', 'opacity-0');
-      chatContent.classList.add('scale-100', 'opacity-100');
-    });
+let currentChatUser = null;
+
+// Fungsi utama: buka modal dan muat riwayat chat
+async function openChatModal(username) {
+  currentChatUser = username;
+  chatUsername.textContent = username;
+
+  // tampilkan modal
+  chatModal.classList.remove("hidden");
+  requestAnimationFrame(() => {
+    chatContent.classList.remove("scale-95", "opacity-0");
+    chatContent.classList.add("scale-100", "opacity-100");
+  });
+
+  // tampilkan indikator loading
+  chatBox.innerHTML = `<p class="text-gray-400 italic text-center">Memuat percakapan...</p>`;
+
+  try {
+    const res = await fetch(`/accounts/chat/${username}/`);
+    const data = await res.json();
+
+    if (data.success) {
+      chatBox.innerHTML = "";
+
+      data.messages.forEach((msg) => {
+        const isFriend = msg.sender === username;
+        const align = isFriend ? "justify-start" : "justify-end";
+        const bubbleClass = isFriend
+          ? "bg-gray-300 text-[#0C2D57]"
+          : "bg-[#0C2D57] text-white";
+
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `flex ${align}`;
+        msgDiv.innerHTML = `
+          <div class="${bubbleClass} rounded-xl px-3 py-2 max-w-[70%]">
+            ${msg.message}
+          </div>`;
+        chatBox.appendChild(msgDiv);
+      });
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    } else {
+      chatBox.innerHTML = `<p class="text-red-500 italic text-center">${data.message}</p>`;
+    }
+  } catch (err) {
+    console.error(err);
+    chatBox.innerHTML = `<p class="text-red-500 italic text-center">Gagal memuat percakapan.</p>`;
   }
+}
 
-  closeChatBtn.addEventListener('click', () => closeModal(chatModal, chatContent));
-  chatModal.addEventListener('click', e => { if (e.target === chatModal) closeModal(chatModal, chatContent); });
+// Tutup modal chat
+closeChatBtn.addEventListener("click", () => closeModal(chatModal, chatContent));
+chatModal.addEventListener("click", (e) => {
+  if (e.target === chatModal) closeModal(chatModal, chatContent);
+});
+
+// Kirim pesan baru via AJAX
+chatSendBtn.addEventListener("click", async () => {
+  const message = chatInput.value.trim();
+  if (!message || !currentChatUser) return;
+
+  try {
+    const res = await fetch("/accounts/chat/send/", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        username: currentChatUser,
+        message: message,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      // tampilkan pesan langsung di chat box
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "flex justify-end";
+      msgDiv.innerHTML = `
+        <div class="bg-[#0C2D57] text-white rounded-xl px-3 py-2 max-w-[70%]">
+          ${message}
+        </div>`;
+      chatBox.appendChild(msgDiv);
+
+      chatInput.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
+    } else {
+      showToast(data.message, "error");
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("Gagal mengirim pesan.", "error");
+  }
+});
+
 
   /* ======= TAMBAH TEMAN MODAL ======= */
   const addFriendModal = document.getElementById('add-friend-modal');
@@ -776,6 +866,123 @@ let currentUserToUnfriend = null;
       console.error("Gagal memperbarui jumlah permintaan:", err);
     }
   }
+
+  // ======= LOAD FRIEND SUGGESTIONS VIA AJAX =======
+async function loadFriendSuggestions() {
+  const container = document.getElementById("suggestCarouselModal");
+  if (!container) return;
+
+  container.innerHTML = `<p class="text-gray-500 italic text-center w-full">Memuat saran teman...</p>`;
+
+  try {
+    const response = await fetch("/accounts/friends/suggestions/");
+    const data = await response.json();
+    const suggestions = data.suggestions;
+
+    if (!suggestions || suggestions.length === 0) {
+      container.innerHTML = `<p class="text-gray-500 italic text-center w-full animate-fade-in">
+        Tidak ada saran teman saat ini.
+      </p>`;
+      return;
+    }
+
+    container.innerHTML = ""; // bersihkan konten lama
+
+    suggestions.forEach((s) => {
+      const card = document.createElement("div");
+      card.className =
+        "flex-none w-48 mx-2 bg-white shadow rounded-xl p-4 flex flex-col items-center text-center hover:scale-[1.03] transition snap-center";
+      card.innerHTML = `
+        <img src="${s.photo_url}" 
+             class="h-16 w-16 rounded-full object-cover border border-[#0C2D57]/30 mb-2">
+        <p class="font-semibold text-[#0C2D57] text-sm">${s.username}</p>
+        <p class="text-xs italic text-gray-500 mb-2">"${s.bio}"</p>
+        <button 
+          class="text-xs bg-[#F87E18] hover:bg-orange-600 text-white px-3 py-1 rounded-lg shadow font-semibold transition"
+          onclick="sendFriendRequest('${s.username}')">
+          Tambah
+        </button>
+      `;
+      container.appendChild(card);
+    });
+  } catch (err) {
+    console.error("Gagal memuat saran teman:", err);
+    container.innerHTML = `<p class="text-red-500 italic text-center w-full">Gagal memuat saran teman.</p>`;
+  }
+}
+
+
+// ======= KIRIM PERMINTAAN TEMAN (untuk hasil pencarian & saran) =======
+async function sendFriendRequest(username) {
+  try {
+    const response = await fetch("/accounts/friends/send/", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ username }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      showToast(`Permintaan pertemanan dikirim ke ${username}.`, "success");
+
+      // Ubah tombol "Tambah" jadi "Menunggu Konfirmasi"
+      const btn = document.querySelector(
+        `button[onclick="sendFriendRequest('${username}')"]`
+      );
+
+      if (btn) {
+        btn.textContent = "Menunggu Konfirmasi";
+        btn.classList.remove("bg-[#F87E18]", "hover:bg-orange-600", "text-white");
+        btn.classList.add(
+          "bg-gray-300",
+          "text-gray-600",
+          "cursor-not-allowed",
+          "font-semibold"
+        );
+        btn.disabled = true;
+      }
+    } else {
+      // Jika sudah pernah dikirim atau sudah berteman
+      showToast(data.message, "error");
+
+      // Jika backend mengembalikan status pending atau friend, ubah juga tombol
+      const btn = document.querySelector(
+        `button[onclick="sendFriendRequest('${username}')"]`
+      );
+
+      if (btn && data.status === "pending") {
+        btn.textContent = "Menunggu Konfirmasi";
+        btn.classList.remove("bg-[#F87E18]", "hover:bg-orange-600", "text-white");
+        btn.classList.add(
+          "bg-gray-300",
+          "text-gray-600",
+          "cursor-not-allowed",
+          "font-semibold"
+        );
+        btn.disabled = true;
+      } else if (btn && data.status === "friend") {
+        btn.outerHTML = `<span class="text-green-600 font-semibold text-sm">✅ Sudah Berteman</span>`;
+      }
+    }
+  } catch (err) {
+    console.error("Gagal mengirim permintaan pertemanan:", err);
+    showToast("Gagal mengirim permintaan pertemanan.", "error");
+  }
+}
+
+// Muat ulang saran saat klik tombol muat ulang
+document.getElementById("refresh-suggestions")?.addEventListener("click", loadFriendSuggestions);
+
+// Muat saran teman setiap kali modal dibuka
+document.getElementById("open-add-friend-btn").addEventListener("click", () => {
+  openModal(addFriendModal, addFriendContent);
+  loadFriendSuggestions();
+});
+
 
   /* ======= AUTO REFRESH FRIEND LIST ======= */
   setInterval(loadFriendList, 10000);

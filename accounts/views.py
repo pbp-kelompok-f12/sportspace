@@ -45,6 +45,78 @@ def logout(request):
     auth_logout(request)
     return redirect('accounts:login')
 
+# FLUTTER AUTHENTICATION
+
+from django.contrib.auth import authenticate, login as auth_login
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def login_flutter(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        if user.is_active:
+            auth_login(request, user)
+            # Login status successful.
+            return JsonResponse({
+                "username": user.username,
+                "status": True,
+                "message": "Login successful!"
+                # Add other data if you want to send data to Flutter.
+            }, status=200)
+        else:
+            return JsonResponse({
+                "status": False,
+                "message": "Login failed, account is disabled."
+            }, status=401)
+
+    else:
+        return JsonResponse({
+            "status": False,
+            "message": "Login failed, please check your username or password."
+        }, status=401)
+
+
+@csrf_exempt
+def register_flutter(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data['username']
+        password1 = data['password1']
+        password2 = data['password2']
+
+        # Check if the passwords match
+        if password1 != password2:
+            return JsonResponse({
+                "status": False,
+                "message": "Passwords do not match."
+            }, status=400)
+        
+        # Check if the username is already taken
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({
+                "status": False,
+                "message": "Username already exists."
+            }, status=400)
+        
+        # Create the new user
+        user = User.objects.create_user(username=username, password=password1)
+        user.save()
+        
+        return JsonResponse({
+            "username": user.username,
+            "status": 'success',
+            "message": "User created successfully!"
+        }, status=200)
+    
+    else:
+        return JsonResponse({
+            "status": False,
+            "message": "Invalid request method."
+        }, status=400)
+
 
 @login_required
 def profile_view(request):
@@ -96,6 +168,8 @@ def profile_view(request):
 def profile_json(request):
     profile = request.user.profile
     return JsonResponse({
+        'username': request.user.username,
+        "role": profile.role,
         'success': True,
         'message': 'Profil berhasil diperbarui!',
         'email': profile.email,
@@ -276,3 +350,63 @@ def get_friend_suggestions(request):
         for s in suggestions
     ]
     return JsonResponse({"suggestions": data})
+
+
+from django.contrib.auth.decorators import login_required
+from .models import ChatMessage, Profile
+
+@login_required
+def get_chat_history(request, username):
+    target = User.objects.filter(username=username).first()
+    if not target:
+        return JsonResponse({"success": False, "message": "User tidak ditemukan."})
+
+    # Pastikan mereka teman
+    if target.profile not in request.user.profile.friends.all():
+        return JsonResponse({"success": False, "message": "Bukan teman."})
+
+    messages = ChatMessage.objects.filter(
+        sender__in=[request.user, target],
+        receiver__in=[request.user, target]
+    ).order_by("timestamp")
+
+    data = [{
+        "sender": msg.sender.username,
+        "message": msg.message,
+        "timestamp": msg.timestamp.strftime("%H:%M")
+    } for msg in messages]
+
+    return JsonResponse({"success": True, "messages": data})
+
+@login_required
+def send_chat_message(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        text = request.POST.get("message")
+
+        target = User.objects.filter(username=username).first()
+        if not target:
+            return JsonResponse({"success": False, "message": "User tidak ditemukan."})
+
+        ChatMessage.objects.create(sender=request.user, receiver=target, message=text)
+        return JsonResponse({"success": True, "message": "Pesan terkirim."})
+
+    return JsonResponse({"success": False, "message": "Gunakan metode POST."})
+
+
+    image_url = request.GET.get('url')
+    if not image_url:
+        return HttpResponse('No URL provided', status=400)
+    
+    try:
+        # Fetch image from external source
+        response = requests.get(image_url, timeout=10)
+        response.raise_for_status()
+        
+        # Return the image with proper content type
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get('Content-Type', 'image/jpeg')
+        )
+    except requests.RequestException as e:
+        return HttpResponse(f'Error fetching image: {str(e)}', status=500)

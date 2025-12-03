@@ -110,7 +110,8 @@ class AccountsViewsTests(TestCase):
                 'email': 'baru@example.com',
                 'phone': '081234',
                 'address': 'Jakarta',
-                'photo_url': None
+                'photo_url': None,
+                'bio': ''
             }
         )
 
@@ -272,3 +273,165 @@ class ProfileViewInvalidFormTests(TestCase):
         self.assertIn('errors', data)
         self.assertIn('photo_url', data['errors'])
 
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.contrib.auth.models import User
+from accounts.models import Profile, FriendRequest
+from django.http import JsonResponse
+
+
+class FriendSystemTests(TestCase):
+    """Test untuk semua view friend system (send, handle, list, unfriend, count, suggestions)."""
+
+    def setUp(self):
+        self.client = Client()
+
+        # Buat dua user
+        self.user1 = User.objects.create_user(username="alice", password="12345")
+        self.user2 = User.objects.create_user(username="bob", password="12345")
+
+        # Login sebagai user1 (yang akan melakukan aksi)
+        self.client.login(username="alice", password="12345")
+
+        # URL view yang digunakan
+        self.send_url = reverse("accounts:send_friend_request")
+        self.handle_url = reverse("accounts:handle_friend_request")
+        self.friends_json_url = reverse("accounts:friends_json")
+        self.unfriend_url = reverse("accounts:unfriend")
+        self.request_count_url = reverse("accounts:get_request_count")
+        self.friend_count_url = reverse("accounts:get_friend_count")
+        self.suggestions_url = reverse("accounts:get_friend_suggestions")
+
+    # ------------------------------------------------------------------
+    # SEND FRIEND REQUEST
+    # ------------------------------------------------------------------
+    def test_send_friend_request_success(self):
+        """User dapat mengirim permintaan pertemanan."""
+        response = self.client.post(self.send_url, {"username": "bob"})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["status"], "pending")
+        self.assertTrue(FriendRequest.objects.filter(from_user=self.user1, to_user=self.user2).exists())
+
+    def test_send_friend_request_self_not_allowed(self):
+        """Tidak bisa menambahkan diri sendiri."""
+        response = self.client.post(self.send_url, {"username": "alice"})
+        data = response.json()
+        self.assertFalse(data["success"])
+        self.assertIn("Tidak bisa menambahkan diri sendiri", data["message"])
+
+    def test_send_friend_request_user_not_found(self):
+        """Gagal jika user target tidak ada."""
+        response = self.client.post(self.send_url, {"username": "unknown_user"})
+        data = response.json()
+        self.assertFalse(data["success"])
+        self.assertIn("User tidak ditemukan", data["message"])
+
+    # ------------------------------------------------------------------
+    # HANDLE FRIEND REQUEST
+    # ------------------------------------------------------------------
+    def test_handle_friend_request_accept(self):
+        """Menerima permintaan pertemanan berhasil."""
+        FriendRequest.objects.create(from_user=self.user2, to_user=self.user1)
+        friend_request = FriendRequest.objects.get(from_user=self.user2, to_user=self.user1)
+
+        response = self.client.post(self.handle_url, {
+            "action": "accept",
+            "from_user_id": self.user2.id
+        })
+
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertIn("berteman dengan", data["message"])
+        self.assertIn(self.user2.profile, self.user1.profile.friends.all())
+
+    def test_handle_friend_request_reject(self):
+        """Menolak permintaan pertemanan berhasil."""
+        FriendRequest.objects.create(from_user=self.user2, to_user=self.user1)
+
+        response = self.client.post(self.handle_url, {
+            "action": "reject",
+            "from_user_id": self.user2.id
+        })
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["new_friend"], None)
+        self.assertFalse(FriendRequest.objects.filter(from_user=self.user2, to_user=self.user1).exists())
+
+    def test_handle_friend_request_not_found(self):
+        """Menangani kasus permintaan tidak ditemukan."""
+        response = self.client.post(self.handle_url, {
+            "action": "accept",
+            "from_user_id": 9999
+        })
+        self.assertEqual(response.status_code, 404)
+        data = response.json()
+        self.assertFalse(data["success"])
+
+    # ------------------------------------------------------------------
+    # FRIEND LIST JSON
+    # ------------------------------------------------------------------
+    def test_friends_json_returns_friend_list(self):
+        """friends_json mengembalikan daftar teman."""
+        # Jadikan berteman langsung
+        self.user1.profile.friends.add(self.user2.profile)
+        self.user2.profile.friends.add(self.user1.profile)
+
+        response = self.client.get(self.friends_json_url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("friends", data)
+        self.assertEqual(data["friends"][0]["username"], "bob")
+
+    # ------------------------------------------------------------------
+    # UNFRIEND
+    # ------------------------------------------------------------------
+    def test_unfriend_removes_friend(self):
+        """unfriend menghapus hubungan pertemanan dua arah."""
+        self.user1.profile.friends.add(self.user2.profile)
+        self.user2.profile.friends.add(self.user1.profile)
+
+        response = self.client.post(self.unfriend_url, {"username": "bob"})
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertNotIn(self.user2.profile, self.user1.profile.friends.all())
+
+    def test_unfriend_user_not_found(self):
+        """Jika user target tidak ada, kembalikan 404."""
+        response = self.client.post(self.unfriend_url, {"username": "ghost"})
+        self.assertEqual(response.status_code, 404)
+
+    # ------------------------------------------------------------------
+    # COUNT TESTS
+    # ------------------------------------------------------------------
+    def test_get_request_count_returns_correct_number(self):
+        """get_request_count mengembalikan jumlah pending request."""
+        FriendRequest.objects.create(from_user=self.user2, to_user=self.user1)
+        response = self.client.get(self.request_count_url)
+        data = response.json()
+        self.assertEqual(data["count"], 1)
+
+    def test_get_friend_count_returns_correct_number(self):
+        """get_friend_count mengembalikan jumlah teman."""
+        self.user1.profile.friends.add(self.user2.profile)
+        self.user2.profile.friends.add(self.user1.profile)
+
+        response = self.client.get(self.friend_count_url)
+        data = response.json()
+        self.assertEqual(data["count"], 1)
+
+    # ------------------------------------------------------------------
+    # SUGGESTIONS TESTS
+    # ------------------------------------------------------------------
+    def test_get_friend_suggestions_excludes_self_and_friends(self):
+        """Saran teman tidak boleh memunculkan diri sendiri atau teman yang sudah ada."""
+        self.user1.profile.friends.add(self.user2.profile)
+        self.user2.profile.friends.add(self.user1.profile)
+
+        response = self.client.get(self.suggestions_url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        for s in data["suggestions"]:
+            self.assertNotEqual(s["username"], "alice")
+            self.assertNotEqual(s["username"], "bob")

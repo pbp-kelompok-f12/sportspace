@@ -15,6 +15,7 @@ urlpatterns = [
     # JSON endpoints (tetap sama)
     path('api/lapangan/', views.get_lapangan_json, name='get_lapangan_json'),
     path('api/lapangan/<int:id>/', views.get_lapangan_by_id, name='get_lapangan_by_id'),
+    path('api/lapangan-to-venue/<int:id>/', views.lapangan_to_venue, name='lapangan_to_venue'),
     
     # AJAX endpoints (tetap sama)
     path('api/lapangan/create/', views.create_lapangan_ajax, name='create_lapangan_ajax'),
