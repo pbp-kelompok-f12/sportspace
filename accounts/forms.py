@@ -6,7 +6,6 @@ from .models import Profile
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(required=True)
 
-    # hanya tampilkan 2 role
     role = forms.ChoiceField(
         choices=[('customer', 'Customer'), ('venue_owner', 'Venue Owner')],
         label="Role"
@@ -14,7 +13,7 @@ class SignUpForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2', 'role']
+        fields = ['username', 'email', 'password1', 'password2']
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -22,8 +21,13 @@ class SignUpForm(UserCreationForm):
 
         if commit:
             user.save()
-            # role = self.cleaned_data['role']       # ambil role yang dipilih
-            # Profile.objects.create(user=user, role=role)  # buat profil baru terhubung ke user
+            profile = user.profile 
+            profile.role = self.cleaned_data['role']
+            profile.email = self.cleaned_data['email']
+            profile.save()
+
+            print(user.profile.email)
+            print(user.profile.role)
         return user
     
 class ProfileForm(forms.ModelForm):
