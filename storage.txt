@@ -1,4 +1,720 @@
+{% extends 'base.html' %}
+{% load static %}
 
+{% block content %}
+
+<style>
+  .friend-request-card {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .friend-request-card.removed {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  @keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease-in;
+}
+</style>
+
+<div class="flex justify-center mt-10 px-6">
+  <div class="bg-white/90 backdrop-blur-md shadow-md rounded-2xl p-8 w-full max-w-6xl text-[#0C2D57] grid grid-cols-1 md:grid-cols-3 gap-12 mb-10">
+    
+    <!-- ========== LEFT COLUMN: PROFILE INFO ========== -->
+    <div class="col-span-1 flex flex-col items-center md:items-start">
+      <h3 class="text-2xl font-semibold mb-5 text-[#0C2D57] border-b-2 border-[#F87E18] pb-1 text-center md:text-left">
+        Informasi Profil
+      </h3>
+
+      <div class="flex flex-col items-center text-center w-full">
+        {% if profile.photo_url %}
+          <img id="profile-photo" src="{{ profile.photo_url }}" alt="Foto Profil"
+              class="h-28 w-28 rounded-full object-cover shadow-md border-4 border-[#0C2D57]/30 mb-3">
+        {% else %}
+          <img id="profile-photo" src="{% static 'img/defaultprofile.png' %}" alt="Default Foto"
+              class="h-28 w-28 rounded-full object-cover shadow-md border-4 border-[#0C2D57]/30 mb-3">
+        {% endif %}
+
+        <h2 class="text-2xl font-bold text-[#0C2D57]">{{ request.user.username }}</h2>
+        <p class="text-base text-gray-500 capitalize">{{ profile.role }}</p>
+
+        <!-- Bio pengguna -->
+        {% if profile.bio %}
+          <p id="profile-bio" class="text-base italic text-gray-600 mt-2 max-w-xs">{{ profile.bio }}</p>
+        {% else %}
+          <p id="profile-bio" class="text-base italic text-gray-600 mt-2 max-w-xs"></p>
+        {% endif %}
+      </div>
+
+      <!-- Informasi kontak -->
+      <div class="mt-6 w-full">
+        <table class="text-lg w-full">
+          <tr class="h-9">
+            <td class="font-semibold w-36 align-top text-[#0C2D57]">Email</td>
+            <td class="pr-2 text-[#0C2D57] text-lg">:</td>
+            <td id="profile-email" class="text-[#0C2D57] font-medium text-lg">
+              {{ profile.email|default:"-" }}
+            </td>
+          </tr>
+          <tr class="h-9">
+            <td class="font-semibold align-top text-[#0C2D57]">No. Telepon</td>
+            <td class="text-[#0C2D57] text-lg">:</td>
+            <td id="profile-phone" class="text-[#0C2D57] font-medium text-lg">
+              {{ profile.phone|default:"-" }}
+            </td>
+          </tr>
+          <tr class="h-9">
+            <td class="font-semibold align-top text-[#0C2D57]">Alamat</td>
+            <td class="text-[#0C2D57] text-lg">:</td>
+            <td id="profile-address" class="text-[#0C2D57] font-medium text-lg leading-snug">
+              {{ profile.address|default:"-" }}
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Tombol Edit -->
+      <div class="mt-6 w-full flex justify-center text-center">
+        <button id="edit-btn"
+                class="bg-[#0C2D57] hover:bg-[#123872] text-white px-6 py-2 rounded-lg font-semibold transition">
+          Ubah Profil
+        </button>
+      </div>
+
+
+      <!-- Statistik -->
+
+      <div class="mt-10 w-full space-y-5 border-t border-[#0C2D57]/20 pt-6">
+        <div class="flex justify-between items-center text-xl">
+          <div class="flex items-center gap-1">
+            <span class="font-semibold text-[#F87E18] w-48">Total Booking</span>
+            <span class="text-[#0C2D57] text-lg">:</span>
+          </div>
+          <span class="font-bold text-right w-40 text-[#0C2D57]">{{ total_booking }}</span>
+        </div>
+
+        <div class="flex justify-between items-center text-xl">
+          <div class="flex items-center gap-1">
+            <span class="font-semibold text-[#F87E18] w-48">Rata-Rata Rating</span>
+            <span class="text-[#0C2D57] text-lg">:</span>
+          </div>
+          <span class="font-bold text-right w-40 text-[#0C2D57]">{{ average_rating }}</span>
+        </div>
+
+        <div class="flex justify-between items-center text-xl">
+          <div class="flex items-center gap-1">
+            <span class="font-semibold text-[#F87E18] w-48">Bergabung</span>
+            <span class="text-[#0C2D57] text-lg">:</span>
+          </div>
+          <span class="font-bold text-right w-40 text-[#0C2D57]">{{ joined_date }}</span>
+        </div>
+      </div>
+
+
+
+    </div>
+
+    <!-- ========== RIGHT COLUMN: FRIEND LIST + REQUESTS ========== -->
+    <div class="col-span-2 flex flex-col bg-white/70 shadow-inner rounded-xl p-6">
+      <!-- Daftar Teman -->
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-2xl font-semibold text-[#0C2D57]">
+          Teman Saya (<span id="friend-count">{{ friends|length }}</span>)
+        </h3>
+        <button id="open-add-friend-btn"
+                class="bg-[#F87E18] hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow transition font-semibold">
+          Tambahkan Teman
+        </button>
+      </div>
+
+      <div id="friend-list" class="h-[400px] overflow-y-auto pr-2 space-y-4 no-scrollbar">
+      {% if friends %}
+        {% for friend in friends %}
+          <div class="flex items-center bg-white shadow rounded-xl p-4 hover:scale-[1.01] transition">
+            <img src="{{ friend.photo_url|default:'/static/img/defaultprofile.png' }}" 
+                class="h-16 w-16 rounded-full object-cover border border-[#0C2D57]/30 mr-4">
+            <div class="flex-grow">
+              <p class="font-semibold text-[#0C2D57]">{{ friend.user.username }}</p>
+              <p class="text-sm italic text-gray-500">{{ friend.bio|default:"Teman padel tiap akhir pekan!" }}</p>
+            </div>
+            <div class="flex gap-2">
+              <button 
+                class="text-sm bg-[#0C2D57] hover:bg-[#123872] text-white px-3.5 py-1.5 rounded-lg font-semibold transition w-24"
+                onclick="openChatModal('{{ friend.user.username }}')">
+                Chat
+              </button>
+
+              <button 
+                class="unfriend-btn text-sm bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-lg font-semibold transition w-24"
+                data-username="{{ friend.user.username }}">
+                Unfriend
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+    <p class="text-gray-500 italic text-center mt-8">Kamu belum punya teman 😢</p>
+  {% endif %}
+</div>
+
+      <!-- Permintaan Pertemanan -->
+      <div class="mt-10 border-t border-[#0C2D57]/10 pt-6">
+        <h3 class="text-2xl font-semibold text-[#0C2D57] mb-4">
+          Permintaan Pertemanan (<span id="request-count">{{ received_requests|length }}</span>)
+        </h3>
+
+        <div id="friend-requests-container" class="space-y-3 max-h-[160px] overflow-y-auto pr-2 no-scrollbar">
+          {% if received_requests %}
+            {% for req in received_requests %}
+              <div class="friend-request-card flex items-center bg-white shadow rounded-xl p-4 hover:scale-[1.01] transition"
+                  data-from-user-id="{{ req.from_user.id }}">
+                <img src="{{ req.from_user.profile.photo_url|default:'/static/img/defaultprofile.png' }}" 
+                    class="h-14 w-14 rounded-full object-cover border border-[#0C2D57]/30 mr-4">
+                <div class="flex-grow">
+                  <p class="font-semibold text-[#0C2D57]">{{ req.from_user.username }}</p>
+                  <p class="text-sm italic text-gray-500">"{{ req.from_user.profile.bio|default:'Ingin berteman denganmu!' }}"</p>
+                </div>
+                <div class="flex gap-2">
+                  <button 
+                    class="accept-btn text-sm bg-[#0C2D57] hover:bg-[#123872] text-white px-3.5 py-1.5 rounded-lg font-semibold transition"
+                    data-from-user-id="{{ req.from_user.id }}">
+                    Terima
+                  </button>
+                  <button 
+                    class="reject-btn text-sm bg-gray-300 hover:bg-gray-400 text-[#0C2D57] px-3.5 py-1.5 rounded-lg font-semibold transition"
+                    data-from-user-id="{{ req.from_user.id }}">
+                    Tolak
+                  </button>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+    <p class="text-gray-500 italic text-center mt-6">Belum ada permintaan pertemanan.</p>
+  {% endif %}
+</div>
+
+      </div>
+      
+    </div>
+
+  </div>
+  
+</div>
+
+<!-- ========== MODAL EDIT PROFIL========== -->
+<div id="edit-modal"
+     class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-50 flex items-center justify-center">
+  <div id="modal-content"
+     class="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl relative transform transition-all duration-500 ease-out scale-95 opacity-0">
+    <button id="close-modal"
+            class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-xl">✕</button>
+    <h3 class="text-xl font-semibold text-[#0C2D57] mb-4 text-center">Edit Profil</h3>
+
+    <form id="edit-form" method="post" class="space-y-4 text-left">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div>
+        <label class="block font-semibold text-[#F87E18] mb-1">Email</label>
+        {{ form.email }}
+      </div>
+      <div>
+        <label class="block font-semibold text-[#F87E18] mb-1">Nomor Telepon</label>
+        {{ form.phone }}
+      </div>
+      <div>
+        <label class="block font-semibold text-[#F87E18] mb-1">Alamat</label>
+        {{ form.address }}
+      </div>
+      <div>
+        <label class="block font-semibold text-[#F87E18] mb-1">Link Foto Profil</label>
+        {{ form.photo_url }}
+      </div>
+      <div>
+        <label class="block font-semibold text-[#F87E18] mb-1">Bio</label>
+        {{ form.bio }}
+      </div>
+
+      <button type="submit"
+        id="save-btn"
+        class="w-full bg-[#0C2D57] hover:bg-[#123872] text-white font-semibold py-2 rounded-lg transition">
+        Simpan Perubahan
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ========== MODAL CHAT ========== -->
+<div id="chat-modal" class="fixed inset-0 bg-black/40 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+  <div id="chat-content"
+       class="bg-white rounded-2xl shadow-lg relative transform transition-all duration-300 ease-out scale-95 opacity-0 w-full max-w-3xl">
+    <div class="bg-[#0C2D57] text-white rounded-t-2xl px-6 py-4 flex justify-between items-center">
+      <h3 class="text-2xl font-semibold">Chat dengan <span id="chat-username" class="text-[#F87E18]">User</span></h3>
+      <button id="close-chat" class="text-gray-300 hover:text-white text-2xl">✕</button>
+    </div>
+
+    <div id="chat-box" class="bg-gray-100 rounded-b-2xl p-6 h-[500px] overflow-y-auto space-y-3"></div>
+
+    <div class="flex gap-2 border-t border-gray-300 p-4 bg-white rounded-b-2xl">
+      <input id="chat-input" type="text" placeholder="Tulis pesan..." 
+       class="flex-grow rounded-lg border border-gray-300 px-3 py-2 
+              text-black bg-white placeholder-gray-400 
+              focus:outline-none focus:ring-1 focus:ring-[#0C2D57]">
+      <button id="chat-send" 
+              class="bg-[#F87E18] hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition">Kirim</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========== MODAL KONFIRMASI UNFRIEND ========== -->
+<div id="unfriend-modal" class="fixed inset-0 bg-black/40 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+  <div id="unfriend-content" 
+       class="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg relative transform transition-all duration-300 ease-out scale-95 opacity-0 text-center">
+    <h3 class="text-2xl font-semibold text-[#0C2D57] mb-4">Hapus Teman?</h3>
+    <p id="unfriend-message" class="text-gray-600 mb-6">Apakah kamu yakin ingin menghapus teman ini?</p>
+    <div class="flex justify-center gap-4">
+      <button id="cancel-unfriend" 
+              class="bg-gray-300 hover:bg-gray-400 text-[#0C2D57] px-4 py-2 rounded-lg font-semibold transition">Batal</button>
+      <button id="confirm-unfriend" 
+              class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODAL TAMBAH TEMAN ========== -->
+<div id="add-friend-modal" class="fixed inset-0 bg-black/40 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+  <div id="add-friend-content" 
+       class="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-lg relative transform transition-all duration-300 ease-out scale-95 opacity-0">
+    <button id="close-add-friend" class="absolute top-3 right-4 text-gray-500 hover:text-gray-800 text-xl">✕</button>
+    <h3 class="text-2xl font-semibold text-[#0C2D57] mb-4 text-center">Tambahkan Teman</h3>
+
+    <div class="flex gap-2 mb-5">
+      <input 
+        id="friend-search-input" 
+        type="text" 
+        placeholder="Cari berdasarkan username..." 
+        class="flex-grow rounded-lg border border-gray-300 px-3 py-2 text-black placeholder-gray-400 
+              focus:outline-none focus:ring-1 focus:ring-[#0C2D57] bg-white"
+        autocomplete="off"
+      >
+      <button 
+        id="friend-search-btn" 
+        class="bg-[#0C2D57] hover:bg-[#123872] text-white px-5 py-2 rounded-lg font-semibold transition"
+      >
+        Cari
+      </button>
+    </div>
+    <div id="friend-search-result" class="mt-4 space-y-3"></div>
+
+    <div class="border-t border-gray-200 pt-4">
+      <div class="flex justify-between items-center mb-3">
+        <h4 class="text-lg font-semibold text-[#0C2D57]">Saran Teman</h4>
+        <button 
+          id="refresh-suggestions"
+          class="text-sm text-[#F87E18] hover:text-orange-600 font-semibold transition">
+          Muat Ulang
+        </button>
+      </div>
+
+      <div id="suggestCarouselModal"
+          class="flex overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar px-6 space-x-3">
+        <p class="text-gray-500 italic text-center w-full">Memuat saran teman...</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast-container" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center space-y-2 z-[9999]"></div>
+
+<script>
+  /* ======= TOAST FUNCTION ======= */
+  function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.classList.add('toast', type === 'success' ? 'toast-success' : 'toast-error');
+    toast.textContent = message;
+
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 400);
+    }, 3000);
+  }
+
+  /* ======= MODAL EDIT PROFIL ======= */
+  const modal = document.getElementById('edit-modal');
+  const modalContent = document.getElementById('modal-content');
+  const openBtn = document.getElementById('edit-btn');
+  const closeBtn = document.getElementById('close-modal');
+  const form = document.getElementById('edit-form');
+  const saveBtn = document.getElementById('save-btn');
+
+  openBtn.addEventListener('click', () => {
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modalContent.classList.remove('scale-95', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+  });
+
+  function closeEditModal() {
+    modalContent.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => modal.classList.add('hidden'), 150);
+  }
+
+  closeBtn.addEventListener('click', closeEditModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeEditModal(); });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    saveBtn.textContent = "Menyimpan...";
+    saveBtn.disabled = true;
+
+    const formData = new FormData(form);
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    try {
+      const response = await fetch("", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken },
+        body: formData
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        document.getElementById('profile-email').textContent = data.email || "-";
+        document.getElementById('profile-phone').textContent = data.phone || "-";
+        document.getElementById('profile-address').textContent = data.address || "-";
+        if (data.photo_url) document.getElementById('profile-photo').src = data.photo_url;
+        if (data.bio !== undefined) document.getElementById('profile-bio').textContent = data.bio || "";
+
+        closeEditModal();
+        showToast(data.message || "Profil berhasil diperbarui!", 'success');
+      } else {
+        showToast("Terjadi kesalahan saat menyimpan data.", 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal terhubung ke server.", 'error');
+    }
+
+    saveBtn.textContent = "Simpan Perubahan";
+    saveBtn.disabled = false;
+  });
+
+  /* ======= CARI TEMAN & KIRIM PERMINTAAN ======= */
+  const searchBtn = document.getElementById("friend-search-btn");
+  const searchInput = document.getElementById("friend-search-input");
+  const searchResult = document.getElementById("friend-search-result");
+
+  searchBtn.addEventListener("click", async () => {
+    const username = searchInput.value.trim();
+    if (!username) {
+      searchResult.innerHTML = `<p class="text-black italic">Masukkan username terlebih dahulu.</p>`;
+      return;
+    }
+
+    searchResult.innerHTML = `<p class="text-black italic">Mencari...</p>`;
+
+    try {
+      const response = await fetch("/accounts/friends/send/", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ username, search_only: true }),
+      });
+
+      const data = await response.json();
+      if (!data.success) {
+        searchResult.innerHTML = `<p class="text-red-500 font-semibold">${data.message}</p>`;
+        return;
+      }
+
+      const photo = data.photo_url || "/static/img/defaultprofile.png";
+      const bio = data.bio || "Belum ada bio.";
+
+      let buttonHTML = "";
+      if (data.status === "friend") {
+        buttonHTML = `<span class="text-green-600 font-semibold">Sudah Berteman</span>`;
+      } else if (data.status === "pending") {
+        buttonHTML = `<button class="bg-gray-300 text-gray-600 cursor-not-allowed px-4 py-1.5 rounded-lg font-semibold text-sm">
+                        Menunggu Konfirmasi
+                      </button>`;
+      } else if (data.status === "found") {
+        buttonHTML = `<button id="send-request-btn" 
+                        class="bg-[#F87E18] hover:bg-orange-600 text-white px-4 py-1.5 rounded-lg font-semibold text-sm transition">
+                        Kirim Permintaan
+                      </button>`;
+      }
+
+      searchResult.innerHTML = `
+        <div class="flex items-center justify-between bg-white shadow rounded-xl p-4 mt-4 border border-[#0C2D57]/20">
+          <div class="flex items-center">
+            <img src="${photo}" class="h-14 w-14 rounded-full object-cover border border-[#0C2D57]/30 mr-4">
+            <div class="text-left">
+              <p class="font-semibold text-[#0C2D57] text-lg">${data.username}</p>
+              <p class="text-sm italic text-gray-500">"${bio}"</p>
+            </div>
+          </div>
+          <div>${buttonHTML}</div>
+        </div>
+      `;
+
+      const sendBtn = document.getElementById("send-request-btn");
+      if (sendBtn) {
+        sendBtn.addEventListener("click", async () => {
+          sendBtn.textContent = "Mengirim...";
+          sendBtn.disabled = true;
+
+          const res = await fetch("/accounts/friends/send/", {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({ username }),
+          });
+          const result = await res.json();
+
+          if (result.success) {
+            sendBtn.outerHTML = `<button class="bg-gray-300 text-gray-600 cursor-not-allowed px-4 py-1.5 rounded-lg font-semibold text-sm">
+                                    Menunggu Konfirmasi
+                                  </button>`;
+            showToast(result.message, "success");
+          } else {
+            showToast(result.message, "error");
+          }
+        });
+      }
+
+    } catch (err) {
+      searchResult.innerHTML = `<p class="text-red-500 italic">Terjadi kesalahan koneksi.</p>`;
+    }
+  });
+
+  // ======= SEND FRIEND REQUEST DARI SUGGESTION =======
+async function sendFriendRequest(username) {
+  try {
+    const response = await fetch("/accounts/friends/send/", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ username }),
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      showToast(`Permintaan pertemanan dikirim ke ${username}.`, "success");
+
+      // Ubah tombol jadi “Menunggu Konfirmasi”
+      const btn = document.querySelector(`button[onclick="sendFriendRequest('${username}')"]`);
+      if (btn) {
+        btn.textContent = "Menunggu Konfirmasi";
+        btn.classList.remove("bg-[#F87E18]", "hover:bg-orange-600", "text-white");
+        btn.classList.add("bg-gray-300", "text-gray-600", "cursor-not-allowed");
+        btn.disabled = true;
+      }
+    } else {
+      showToast(data.message, "error");
+    }
+  } catch (err) {
+    showToast("Gagal mengirim permintaan pertemanan.", "error");
+  }
+}
+
+  /* ======= HANDLE ACCEPT / REJECT FRIEND REQUEST ======= */
+  document.addEventListener("click", async (e) => {
+    const isAccept = e.target.classList.contains("accept-btn");
+    const isReject = e.target.classList.contains("reject-btn");
+    if (!isAccept && !isReject) return;
+
+    const card = e.target.closest(".friend-request-card");
+    const fromUserId = card.dataset.fromUserId;
+    const action = isAccept ? "accept" : "reject";
+
+    try {
+      const response = await fetch("/accounts/handle-friend-request/", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ action, from_user_id: fromUserId }),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        showToast(data.message, "success");
+
+        card.classList.add("removed");
+        setTimeout(() => card.remove(), 300);
+        updateFriendCount(); // update angka jumlah teman
+        updateRequestCount(); // update angka permintaan
+
+        // Setelah menghapus kartu permintaan, cek apakah masih ada sisa permintaan
+        setTimeout(() => {
+          const container = document.getElementById("friend-requests-container");
+          const remaining = container.querySelectorAll(".friend-request-card").length;
+
+          if (remaining === 0) {
+            container.innerHTML = `
+              <p class="text-gray-500 italic text-center mt-6">
+                Belum ada permintaan pertemanan.
+              </p>
+            `;
+          }
+        }, 350); // beri jeda sedikit agar card.remove() selesai dulu
+
+        if (data.new_friend) loadFriendList();
+
+      } else {
+        showToast(data.message, "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan koneksi.", "error");
+    }
+  });
+
+  /* ======= LOAD FRIEND LIST VIA AJAX ======= */
+async function loadFriendList() {
+  try {
+    const response = await fetch("/accounts/friends/");
+    const data = await response.json();
+    const friendList = document.getElementById("friend-list");
+    friendList.innerHTML = "";
+
+    if (!data.friends || data.friends.length === 0) {
+      friendList.innerHTML = `<p class="text-gray-500 italic text-center mt-8">Kamu belum punya teman 😢</p>`;
+      return;
+    }
+
+    data.friends.forEach(friend => {
+      const card = document.createElement("div");
+      card.className = "flex items-center bg-white shadow rounded-xl p-4 hover:scale-[1.01] transition";
+      card.innerHTML = `
+        <img src="${friend.photo_url || '/static/img/defaultprofile.png'}"
+             class="h-16 w-16 rounded-full object-cover border border-[#0C2D57]/30 mr-4">
+
+        <div class="flex-grow">
+          <p class="font-semibold text-[#0C2D57]">${friend.username}</p>
+          <p class="text-sm italic text-gray-500">"${friend.bio || 'Teman padel tiap akhir pekan!'}"</p>
+        </div>
+
+        <div class="flex gap-2">
+          <button 
+            class="text-sm bg-[#0C2D57] hover:bg-[#123872] text-white px-3.5 py-1.5 rounded-lg font-semibold transition w-24"
+            onclick="openChatModal('${friend.username}')">
+            Chat
+          </button>
+
+          <button 
+            class="unfriend-btn text-sm bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-lg font-semibold transition w-24"
+            data-username="${friend.username}">
+            Unfriend
+          </button>
+        </div>
+      `;
+      friendList.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error(err);
+    showToast("Gagal memuat daftar teman.", "error");
+  }
+}
+
+  document.addEventListener("DOMContentLoaded", loadFriendList);
+
+  // ======= MODAL UNFRIEND =======
+const unfriendModal = document.getElementById("unfriend-modal");
+const unfriendContent = document.getElementById("unfriend-content");
+const confirmUnfriendBtn = document.getElementById("confirm-unfriend");
+const cancelUnfriendBtn = document.getElementById("cancel-unfriend");
+let currentUserToUnfriend = null;
+
+  // Tombol "Batal" → tutup modal
+  cancelUnfriendBtn.addEventListener("click", () => {
+    closeModal(unfriendModal, unfriendContent);
+  });
+
+  // ======= HANDLE UNFRIEND VIA AJAX =======
+  document.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("unfriend-btn")) {
+    const username = e.target.dataset.username;
+
+    // Simpan username di variabel global
+    currentUserToUnfriend = username;
+
+    
+    // Update pesan di modal
+    document.getElementById("unfriend-message").textContent =
+      `Apakah kamu yakin ingin menghapus ${username} dari daftar teman?`;
+
+    // Buka modal custom
+    openModal(unfriendModal, unfriendContent);
+
+    // Pastikan event lama dihapus dulu agar tidak dobel
+    confirmUnfriendBtn.replaceWith(confirmUnfriendBtn.cloneNode(true));
+    const newConfirmBtn = document.getElementById("confirm-unfriend");
+
+    // Tambahkan event baru untuk tombol konfirmasi
+    newConfirmBtn.addEventListener("click", async () => {
+      try {
+        const response = await fetch("/accounts/unfriend/", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({ username }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showToast(data.message, "success");
+
+          // Animasi fade-out sebelum dihapus
+          const card = document.querySelector(
+            `.unfriend-btn[data-username="${username}"]`
+          )?.closest(".flex.items-center.bg-white.shadow.rounded-xl");
+
+          if (card) {
+            card.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+            card.style.opacity = "0";
+            card.style.transform = "scale(0.95)";
+            setTimeout(() => {
+              card.remove();
+              loadFriendList(); // refresh via AJAX
+              updateFriendCount(); // update angka jumlah teman
+              
+            }, 400);
+          } else {
+            loadFriendList();
+            updateFriendCount(); // update angka jumlah teman
+          }
+        } else {
+          showToast(data.message, "error");
+        }
+
+        closeModal(unfriendModal, unfriendContent); // tutup modal
+      } catch (err) {
+        console.error(err);
+        showToast("Gagal menghapus teman.", "error");
+      }
+    });
+  }
+});
 /* ======= CHAT MODAL & SYSTEM ======= */
 const chatModal = document.getElementById("chat-modal");
 const chatContent = document.getElementById("chat-content");
@@ -22,12 +738,15 @@ function addChatMessage(message, sender, timestamp) {
   msgDiv.className = `flex flex-col ${align} mb-2`;
 
   const timeStr = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  msgDiv.className = `flex ${align} mb-2`;
 
   msgDiv.innerHTML = `
-    <div class="${bubbleClass} rounded-xl px-3 py-2 inline-block break-words min-w-[50px] max-w-max">
-      ${message}
+    <div class="${bubbleClass} rounded-xl px-3 py-2 inline-block break-words min-w-[50px] max-w-max flex flex-col">
+      <span>${message}</span>
+      <span class="text-xs text-gray-400 mt-1 self-end">
+        ${timeStr}
+      </span>
     </div>
-    <span class="text-xs text-gray-400 mt-1 ml-1">${timeStr}</span>
   `;
 
   chatBox.appendChild(msgDiv);
@@ -109,3 +828,169 @@ chatSendBtn.addEventListener("click", async () => {
     showToast("Gagal mengirim pesan.", "error");
   }
 });
+
+
+  /* ======= TAMBAH TEMAN MODAL ======= */
+  const addFriendModal = document.getElementById('add-friend-modal');
+  const addFriendContent = document.getElementById('add-friend-content');
+  document.getElementById('open-add-friend-btn').addEventListener('click', () => openModal(addFriendModal, addFriendContent));
+  document.getElementById('close-add-friend').addEventListener('click', () => closeModal(addFriendModal, addFriendContent));
+
+  /* ======= MODAL UTILITIES ======= */
+  function openModal(modal, content) {
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      content.classList.remove('scale-95', 'opacity-0');
+      content.classList.add('scale-100', 'opacity-100');
+    });
+  }
+
+  function closeModal(modal, content) {
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => modal.classList.add('hidden'), 150);
+  }
+
+  // ======= UPDATE JUMLAH TEMAN (AJAX) =======
+  async function updateFriendCount() {
+    try {
+      const response = await fetch("/accounts/friends/count/");
+      const data = await response.json();
+      const countSpan = document.getElementById("friend-count");
+      if (countSpan) countSpan.textContent = data.count;
+    } catch (err) {
+      console.error("Gagal memperbarui jumlah teman:", err);
+    }
+  }
+
+  // ======= UPDATE JUMLAH PERMINTAAN TEMAN (AJAX) =======
+  async function updateRequestCount() {
+    try {
+      const response = await fetch("/accounts/friend-requests/count/");
+      const data = await response.json();
+
+      const countSpan = document.getElementById("request-count");
+      if (countSpan) countSpan.textContent = data.count;
+    } catch (err) {
+      console.error("Gagal memperbarui jumlah permintaan:", err);
+    }
+  }
+
+  // ======= LOAD FRIEND SUGGESTIONS VIA AJAX =======
+async function loadFriendSuggestions() {
+  const container = document.getElementById("suggestCarouselModal");
+  if (!container) return;
+
+  container.innerHTML = `<p class="text-gray-500 italic text-center w-full">Memuat saran teman...</p>`;
+
+  try {
+    const response = await fetch("/accounts/friends/suggestions/");
+    const data = await response.json();
+    const suggestions = data.suggestions;
+
+    if (!suggestions || suggestions.length === 0) {
+      container.innerHTML = `<p class="text-gray-500 italic text-center w-full animate-fade-in">
+        Tidak ada saran teman saat ini.
+      </p>`;
+      return;
+    }
+
+    container.innerHTML = ""; // bersihkan konten lama
+
+    suggestions.forEach((s) => {
+      const card = document.createElement("div");
+      card.className =
+        "flex-none w-48 mx-2 bg-white shadow rounded-xl p-4 flex flex-col items-center text-center hover:scale-[1.03] transition snap-center";
+      card.innerHTML = `
+        <img src="${s.photo_url}" 
+             class="h-16 w-16 rounded-full object-cover border border-[#0C2D57]/30 mb-2">
+        <p class="font-semibold text-[#0C2D57] text-sm">${s.username}</p>
+        <p class="text-xs italic text-gray-500 mb-2">"${s.bio}"</p>
+        <button 
+          class="text-xs bg-[#F87E18] hover:bg-orange-600 text-white px-3 py-1 rounded-lg shadow font-semibold transition"
+          onclick="sendFriendRequest('${s.username}')">
+          Tambah
+        </button>
+      `;
+      container.appendChild(card);
+    });
+  } catch (err) {
+    console.error("Gagal memuat saran teman:", err);
+    container.innerHTML = `<p class="text-red-500 italic text-center w-full">Gagal memuat saran teman.</p>`;
+  }
+}
+
+
+// ======= KIRIM PERMINTAAN TEMAN (untuk hasil pencarian & saran) =======
+async function sendFriendRequest(username) {
+  try {
+    const response = await fetch("/accounts/friends/send/", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ username }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      showToast(`Permintaan pertemanan dikirim ke ${username}.`, "success");
+
+      // Ubah tombol "Tambah" jadi "Menunggu Konfirmasi"
+      const btn = document.querySelector(
+        `button[onclick="sendFriendRequest('${username}')"]`
+      );
+
+      if (btn) {
+        btn.textContent = "Menunggu Konfirmasi";
+        btn.classList.remove("bg-[#F87E18]", "hover:bg-orange-600", "text-white");
+        btn.classList.add(
+          "bg-gray-300",
+          "text-gray-600",
+          "cursor-not-allowed",
+          "font-semibold"
+        );
+        btn.disabled = true;
+      }
+    } else {
+      // Jika sudah pernah dikirim atau sudah berteman
+      showToast(data.message, "error");
+
+      // Jika backend mengembalikan status pending atau friend, ubah juga tombol
+      const btn = document.querySelector(
+        `button[onclick="sendFriendRequest('${username}')"]`
+      );
+
+      if (btn && data.status === "pending") {
+        btn.textContent = "Menunggu Konfirmasi";
+        btn.classList.remove("bg-[#F87E18]", "hover:bg-orange-600", "text-white");
+        btn.classList.add(
+          "bg-gray-300",
+          "text-gray-600",
+          "cursor-not-allowed",
+          "font-semibold"
+        );
+        btn.disabled = true;
+      } else if (btn && data.status === "friend") {
+        btn.outerHTML = `<span class="text-green-600 font-semibold text-sm">✅ Sudah Berteman</span>`;
+      }
+    }
+  } catch (err) {
+    console.error("Gagal mengirim permintaan pertemanan:", err);
+    showToast("Gagal mengirim permintaan pertemanan.", "error");
+  }
+}
+
+// Muat ulang saran saat klik tombol muat ulang
+document.getElementById("refresh-suggestions")?.addEventListener("click", loadFriendSuggestions);
+
+// Muat saran teman setiap kali modal dibuka
+document.getElementById("open-add-friend-btn").addEventListener("click", () => {
+  openModal(addFriendModal, addFriendContent);
+  loadFriendSuggestions();
+});
+
+</script>
+
+{% endblock %}
