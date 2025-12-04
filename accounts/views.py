@@ -1,13 +1,14 @@
-from django.shortcuts import render
-
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .forms import SignUpForm, ProfileForm
-from .models import Profile, FriendRequest
+from .models import Profile, FriendRequest, ChatMessage
 from django.views.decorators.http import require_POST
+from django.contrib.auth import authenticate, login as auth_login
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 # SIGN UP
 def signup(request):
@@ -46,10 +47,6 @@ def logout(request):
     return redirect('accounts:login')
 
 # FLUTTER AUTHENTICATION
-
-from django.contrib.auth import authenticate, login as auth_login
-from django.views.decorators.csrf import csrf_exempt
-import json
 
 @csrf_exempt
 def login_flutter(request):
@@ -352,12 +349,9 @@ def get_friend_suggestions(request):
     ]
     return JsonResponse({"suggestions": data})
 
-
-from django.contrib.auth.decorators import login_required
-from .models import ChatMessage, Profile
-
 @login_required
 def get_chat_history(request, username):
+
     target = User.objects.filter(username=username).first()
     if not target:
         return JsonResponse({"success": False, "message": "User tidak ditemukan."})
@@ -371,25 +365,33 @@ def get_chat_history(request, username):
         receiver__in=[request.user, target]
     ).order_by("timestamp")
 
-    data = [{
-        "sender": msg.sender.username,
-        "message": msg.message,
-        "timestamp": msg.timestamp.strftime("%H:%M")
-    } for msg in messages]
+    data = [
+        {   "sender": msg.sender.username,
+            "message": msg.message,
+            "timestamp": msg.timestamp.isoformat()
+        } for msg in messages]
 
     return JsonResponse({"success": True, "messages": data})
 
 @login_required
 def send_chat_message(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        text = request.POST.get("message")
 
-        target = User.objects.filter(username=username).first()
-        if not target:
-            return JsonResponse({"success": False, "message": "User tidak ditemukan."})
+    if request.method != "POST":
+        return JsonResponse({"success": False, "message": "Gunakan metode POST."})
 
-        ChatMessage.objects.create(sender=request.user, receiver=target, message=text)
-        return JsonResponse({"success": True, "message": "Pesan terkirim."})
+    username = request.POST.get("username")
+    text = request.POST.get("message")
 
-    return JsonResponse({"success": False, "message": "Gunakan metode POST."})
+    if not text:
+        return JsonResponse({"success": False, "message": "Pesan kosong."})
+
+    target = User.objects.filter(username=username).first()
+
+    # if not target:
+    #     return JsonResponse({"success": False, "message": "User tidak ditemukan."})
+
+    if target.profile not in request.user.profile.friends.all():
+        return JsonResponse({"success": False, "message": "Tidak dapat mengirim pesan ke non-teman."})
+
+    ChatMessage.objects.create(sender=request.user, receiver=target, message=text)
+    return JsonResponse({"success": True, "message": "Pesan terkirim."})

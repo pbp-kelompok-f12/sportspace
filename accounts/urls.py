@@ -22,5 +22,5 @@ urlpatterns = [
     path("friends/suggestions/", views.get_friend_suggestions, name="get_friend_suggestions"),
 
     path("chat/<str:username>/", views.get_chat_history, name="get_chat_history"),
-    path("chat/send/", views.send_chat_message, name="send_chat_message"),
+    path("chat-send/", views.send_chat_message, name="send_chat_message"),
 ]

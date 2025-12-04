@@ -25,9 +25,6 @@ class SignUpForm(UserCreationForm):
             profile.role = self.cleaned_data['role']
             profile.email = self.cleaned_data['email']
             profile.save()
-
-            print(user.profile.email)
-            print(user.profile.role)
         return user
     
 class ProfileForm(forms.ModelForm):

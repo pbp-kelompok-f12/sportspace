@@ -21,7 +21,7 @@
 </style>
 
 <div class="flex justify-center mt-10 px-6">
-  <div class="bg-white/90 backdrop-blur-md shadow-md rounded-2xl p-8 w-full max-w-6xl text-[#0C2D57] grid grid-cols-1 md:grid-cols-3 gap-12">
+  <div class="bg-white/90 backdrop-blur-md shadow-md rounded-2xl p-8 w-full max-w-6xl text-[#0C2D57] grid grid-cols-1 md:grid-cols-3 gap-12 mb-10">
     
     <!-- ========== LEFT COLUMN: PROFILE INFO ========== -->
     <div class="col-span-1 flex flex-col items-center md:items-start">
@@ -50,31 +50,31 @@
       </div>
 
       <!-- Informasi kontak -->
-<div class="mt-6 w-full">
-  <table class="text-lg w-full">
-    <tr class="h-9">
-      <td class="font-semibold w-36 align-top text-[#0C2D57]">Email</td>
-      <td class="pr-2 text-[#0C2D57] text-lg">:</td>
-      <td id="profile-email" class="text-[#0C2D57] font-medium text-lg">
-        {{ profile.email|default:"-" }}
-      </td>
-    </tr>
-    <tr class="h-9">
-      <td class="font-semibold align-top text-[#0C2D57]">No. Telepon</td>
-      <td class="text-[#0C2D57] text-lg">:</td>
-      <td id="profile-phone" class="text-[#0C2D57] font-medium text-lg">
-        {{ profile.phone|default:"-" }}
-      </td>
-    </tr>
-    <tr class="h-9">
-      <td class="font-semibold align-top text-[#0C2D57]">Alamat</td>
-      <td class="text-[#0C2D57] text-lg">:</td>
-      <td id="profile-address" class="text-[#0C2D57] font-medium text-lg leading-snug">
-        {{ profile.address|default:"-" }}
-      </td>
-    </tr>
-  </table>
-</div>
+      <div class="mt-6 w-full">
+        <table class="text-lg w-full">
+          <tr class="h-9">
+            <td class="font-semibold w-36 align-top text-[#0C2D57]">Email</td>
+            <td class="pr-2 text-[#0C2D57] text-lg">:</td>
+            <td id="profile-email" class="text-[#0C2D57] font-medium text-lg">
+              {{ profile.email|default:"-" }}
+            </td>
+          </tr>
+          <tr class="h-9">
+            <td class="font-semibold align-top text-[#0C2D57]">No. Telepon</td>
+            <td class="text-[#0C2D57] text-lg">:</td>
+            <td id="profile-phone" class="text-[#0C2D57] font-medium text-lg">
+              {{ profile.phone|default:"-" }}
+            </td>
+          </tr>
+          <tr class="h-9">
+            <td class="font-semibold align-top text-[#0C2D57]">Alamat</td>
+            <td class="text-[#0C2D57] text-lg">:</td>
+            <td id="profile-address" class="text-[#0C2D57] font-medium text-lg leading-snug">
+              {{ profile.address|default:"-" }}
+            </td>
+          </tr>
+        </table>
+      </div>
 
       <!-- Tombol Edit -->
       <div class="mt-6 w-full flex justify-center text-center">
@@ -726,6 +726,33 @@ const chatSendBtn = document.getElementById("chat-send");
 
 let currentChatUser = null;
 
+function addChatMessage(message, sender, timestamp) {
+  const isCurrentUser = sender === currentChatUser; // jika pengirim adalah lawan chat
+  const align = isCurrentUser ? "justify-start" : "justify-end"; // kiri untuk lawan, kanan untuk kita
+  const bubbleClass = isCurrentUser
+    ? "bg-gray-300 text-[#0C2D57]"
+    : "bg-[#0C2D57] text-white";
+
+  const msgDiv = document.createElement("div");
+  msgDiv.className = `flex flex-col ${align} mb-2`;
+
+  const timeStr = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  msgDiv.className = `flex ${align} mb-2`;
+
+  msgDiv.innerHTML = `
+    <div class="${bubbleClass} rounded-xl px-3 py-2 inline-block break-words min-w-[50px] max-w-max flex flex-col">
+      <span>${message}</span>
+      <span class="text-xs text-gray-400 mt-1 self-end">
+        ${timeStr}
+      </span>
+    </div>
+  `;
+
+  chatBox.appendChild(msgDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+
 // Fungsi utama: buka modal dan muat riwayat chat
 async function openChatModal(username) {
   currentChatUser = username;
@@ -742,7 +769,7 @@ async function openChatModal(username) {
   chatBox.innerHTML = `<p class="text-gray-400 italic text-center">Memuat percakapan...</p>`;
 
   try {
-    const res = await fetch(`/accounts/chat/${username}/`);
+    const res = await fetch(`/accounts/chat/${currentChatUser}/`);
     const data = await res.json();
 
     if (data.success) {
@@ -750,21 +777,8 @@ async function openChatModal(username) {
 
       data.messages.forEach((msg) => {
         const isFriend = msg.sender === username;
-        const align = isFriend ? "justify-start" : "justify-end";
-        const bubbleClass = isFriend
-          ? "bg-gray-300 text-[#0C2D57]"
-          : "bg-[#0C2D57] text-white";
-
-        const msgDiv = document.createElement("div");
-        msgDiv.className = `flex ${align}`;
-        msgDiv.innerHTML = `
-          <div class="${bubbleClass} rounded-xl px-3 py-2 max-w-[70%]">
-            ${msg.message}
-          </div>`;
-        chatBox.appendChild(msgDiv);
+        addChatMessage(msg.message, msg.sender, msg.timestamp, isFriend);
       });
-
-      chatBox.scrollTop = chatBox.scrollHeight;
     } else {
       chatBox.innerHTML = `<p class="text-red-500 italic text-center">${data.message}</p>`;
     }
@@ -786,7 +800,7 @@ chatSendBtn.addEventListener("click", async () => {
   if (!message || !currentChatUser) return;
 
   try {
-    const res = await fetch("/accounts/chat/send/", {
+    const res = await fetch("/accounts/chat-send/", {
       method: "POST",
       headers: {
         "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
@@ -801,17 +815,10 @@ chatSendBtn.addEventListener("click", async () => {
     const data = await res.json();
 
     if (data.success) {
-      // tampilkan pesan langsung di chat box
-      const msgDiv = document.createElement("div");
-      msgDiv.className = "flex justify-end";
-      msgDiv.innerHTML = `
-        <div class="bg-[#0C2D57] text-white rounded-xl px-3 py-2 max-w-[70%]">
-          ${message}
-        </div>`;
-      chatBox.appendChild(msgDiv);
+      addChatMessage(message, "me", new Date().toISOString(), false);
 
       chatInput.value = "";
-      chatBox.scrollTop = chatBox.scrollHeight;
+      // chatBox.scrollTop = chatBox.scrollHeight;
     } else {
       showToast(data.message, "error");
     }

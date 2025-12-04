@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Profile(models.Model):
 
@@ -40,16 +42,11 @@ class Profile(models.Model):
         if ratings:
             return round(sum(ratings) / len(ratings), 1)
         return 0
-    
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.contrib.auth.models import User
 
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     """Otomatis buat Profile saat user dibuat"""
     if created:
-
         Profile.objects.get_or_create(
             user=instance,
             defaults={'role': 'admin' if instance.is_superuser else 'customer'}
@@ -57,7 +54,7 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     else:
         instance.profile.save()
 
-# FRIENDD
+# FRIEND
 
 class FriendRequest(models.Model):
     from_user = models.ForeignKey(User, related_name='sent_requests', on_delete=models.CASCADE)

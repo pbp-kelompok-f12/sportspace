@@ -1,0 +1,111 @@
+
+/* ======= CHAT MODAL & SYSTEM ======= */
+const chatModal = document.getElementById("chat-modal");
+const chatContent = document.getElementById("chat-content");
+const chatUsername = document.getElementById("chat-username");
+const closeChatBtn = document.getElementById("close-chat");
+
+const chatBox = document.getElementById("chat-box");
+const chatInput = document.getElementById("chat-input");
+const chatSendBtn = document.getElementById("chat-send");
+
+let currentChatUser = null;
+
+function addChatMessage(message, sender, timestamp) {
+  const isCurrentUser = sender === currentChatUser; // jika pengirim adalah lawan chat
+  const align = isCurrentUser ? "justify-start" : "justify-end"; // kiri untuk lawan, kanan untuk kita
+  const bubbleClass = isCurrentUser
+    ? "bg-gray-300 text-[#0C2D57]"
+    : "bg-[#0C2D57] text-white";
+
+  const msgDiv = document.createElement("div");
+  msgDiv.className = `flex flex-col ${align} mb-2`;
+
+  const timeStr = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  msgDiv.innerHTML = `
+    <div class="${bubbleClass} rounded-xl px-3 py-2 inline-block break-words min-w-[50px] max-w-max">
+      ${message}
+    </div>
+    <span class="text-xs text-gray-400 mt-1 ml-1">${timeStr}</span>
+  `;
+
+  chatBox.appendChild(msgDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+
+// Fungsi utama: buka modal dan muat riwayat chat
+async function openChatModal(username) {
+  currentChatUser = username;
+  chatUsername.textContent = username;
+
+  // tampilkan modal
+  chatModal.classList.remove("hidden");
+  requestAnimationFrame(() => {
+    chatContent.classList.remove("scale-95", "opacity-0");
+    chatContent.classList.add("scale-100", "opacity-100");
+  });
+
+  // tampilkan indikator loading
+  chatBox.innerHTML = `<p class="text-gray-400 italic text-center">Memuat percakapan...</p>`;
+
+  try {
+    const res = await fetch(`/accounts/chat/${currentChatUser}/`);
+    const data = await res.json();
+
+    if (data.success) {
+      chatBox.innerHTML = "";
+
+      data.messages.forEach((msg) => {
+        const isFriend = msg.sender === username;
+        addChatMessage(msg.message, msg.sender, msg.timestamp, isFriend);
+      });
+    } else {
+      chatBox.innerHTML = `<p class="text-red-500 italic text-center">${data.message}</p>`;
+    }
+  } catch (err) {
+    console.error(err);
+    chatBox.innerHTML = `<p class="text-red-500 italic text-center">Gagal memuat percakapan.</p>`;
+  }
+}
+
+// Tutup modal chat
+closeChatBtn.addEventListener("click", () => closeModal(chatModal, chatContent));
+chatModal.addEventListener("click", (e) => {
+  if (e.target === chatModal) closeModal(chatModal, chatContent);
+});
+
+// Kirim pesan baru via AJAX
+chatSendBtn.addEventListener("click", async () => {
+  const message = chatInput.value.trim();
+  if (!message || !currentChatUser) return;
+
+  try {
+    const res = await fetch("/accounts/chat-send/", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        username: currentChatUser,
+        message: message,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      addChatMessage(message, "me", new Date().toISOString(), false);
+
+      chatInput.value = "";
+      // chatBox.scrollTop = chatBox.scrollHeight;
+    } else {
+      showToast(data.message, "error");
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("Gagal mengirim pesan.", "error");
+  }
+});
