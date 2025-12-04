@@ -771,22 +771,27 @@ async function openChatModal(username) {
 
   try {
     const res = await fetch(`/accounts/chat/${currentChatUser}/`);
-    const data = await res.json();
+    const text = await res.text(); // ambil response mentah
 
-    if (data.success) {
-      chatBox.innerHTML = "";
-
-      data.messages.forEach((msg) => {
-        const isFriend = msg.sender === username;
-        addChatMessage(msg.message, msg.sender, msg.timestamp, isFriend);
-      });
-    } else {
-      chatBox.innerHTML = `<p class="text-red-500 italic text-center">${data.message}</p>`;
+    try {
+        const data = JSON.parse(text); // parse JSON
+        if (data.success) {
+            chatBox.innerHTML = "";
+            // render pesan...
+        } else {
+            chatBox.innerHTML = `<p class="text-red-500 italic text-center">${data.message}</p>`;
+        }
+    } catch (jsonErr) {
+        // kalau gagal parse JSON, tampilkan text HTML-nya
+        console.error("Response bukan JSON:", text);
+        chatBox.innerHTML = `<p class="text-red-500 italic text-center">Gagal memuat percakapan: Response bukan JSON.</p>`;
     }
-  } catch (err) {
-    console.error(err);
-    chatBox.innerHTML = `<p class="text-red-500 italic text-center">Gagal memuat percakapan${err.message}.</p>`;
-  }
+
+} catch (err) {
+    console.error("Fetch error:", err);
+    chatBox.innerHTML = `<p class="text-red-500 italic text-center">Gagal memuat percakapan: ${err.message}</p>`;
+}
+
 }
 
 // Tutup modal chat
