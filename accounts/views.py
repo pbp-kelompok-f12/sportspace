@@ -376,8 +376,8 @@ def get_chat_history(request, username):
 @login_required
 def send_chat_message(request):
 
-    # if request.method != "POST":
-    #     return JsonResponse({"success": False, "message": "Gunakan metode POST."})
+    if request.method != "POST":
+        return JsonResponse({"success": False, "message": "Gunakan metode POST."})
 
     username = request.POST.get("username")
     text = request.POST.get("message")

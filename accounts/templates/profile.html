@@ -785,7 +785,7 @@ async function openChatModal(username) {
     }
   } catch (err) {
     console.error(err);
-    chatBox.innerHTML = `<p class="text-red-500 italic text-center">Gagal memuat percakapan.</p>`;
+    chatBox.innerHTML = `<p class="text-red-500 italic text-center">Gagal memuat percakapan${err.message}.</p>`;
   }
 }
 
