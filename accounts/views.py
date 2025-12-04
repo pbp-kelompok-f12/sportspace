@@ -376,8 +376,8 @@ def get_chat_history(request, username):
 @login_required
 def send_chat_message(request):
 
-    if request.method != "POST":
-        return JsonResponse({"success": False, "message": "Gunakan metode POST."})
+    # if request.method != "POST":
+    #     return JsonResponse({"success": False, "message": "Gunakan metode POST."})
 
     username = request.POST.get("username")
     text = request.POST.get("message")
@@ -387,8 +387,8 @@ def send_chat_message(request):
 
     target = User.objects.filter(username=username).first()
 
-    # if not target:
-    #     return JsonResponse({"success": False, "message": "User tidak ditemukan."})
+    if not target:
+        return JsonResponse({"success": False, "message": "User tidak ditemukan."})
 
     if target.profile not in request.user.profile.friends.all():
         return JsonResponse({"success": False, "message": "Tidak dapat mengirim pesan ke non-teman."})
