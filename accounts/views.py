@@ -22,7 +22,6 @@ def signup(request):
         form = SignUpForm()
     return render(request, 'signup.html', {'form': form})
 
-
 # LOGIN
 def login(request):
     if request.method == 'POST':
@@ -102,6 +101,10 @@ def register_flutter(request):
         # Create the new user
         user = User.objects.create_user(username=username, email=email, password=password1)
         user.save()
+
+        profile = user.profile 
+        profile.email = email
+        profile.save()
         
         return JsonResponse({
             "username": user.username,
