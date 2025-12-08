@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 from django.core import serializers
 from .models import LapanganPadel
 from .forms import LapanganPadelForm
+from django.utils.html import strip_tags
 
 def get_google_maps_data(query="lapangan padel di jakarta"):
     api_key = settings.GOOGLE_MAPS_API_KEY
@@ -82,7 +83,7 @@ def get_lapangan_modal(request, id=None):
     return render(request, 'home/modal.html', context)
 
 
-@login_required(login_url='/accounts/login/')
+#@login_required(login_url='/accounts/login/')
 def get_lapangan_json(request):
     lapangan_objects = LapanganPadel.objects.all()
     data = []
@@ -322,7 +323,7 @@ def create_lapangan_flutter(request):
     else:
         return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
 
-@login_required
+#@login_required
 def show_my_lapangan_json(request):
     my_lapangan = LapanganPadel.objects.filter(added_by=request.user)
     data = serializers.serialize(

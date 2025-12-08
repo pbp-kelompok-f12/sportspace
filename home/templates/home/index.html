@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<main data-user-id="{{ request.user.id }}" data-is-superuser="{{ request.user.is_superuser|yesno:'true,false' }}">
+<main data-user-id="{{ user_id }}" data-is-superuser="{{ is_superuser|lower }}">
     <section class="hero-section">
         <!-- ... Konten Hero Section (tidak berubah) ... -->
         <div class="container">
@@ -95,6 +95,7 @@
             const safeNama = fields.nama.replace(/'/g, "\\'");
             const safeAlamat = fields.alamat.replace(/'/g, "\\'");
             const safeThumbnailUrl = thumbnailUrl.replace(/'/g, "\\'");
+            const addedBy = Number(fields.added_by);
 
             // Cek apakah user boleh mengedit/menghapus
             const canModify = isSuperuser || Number(fields.added_by) === currentUserId;
