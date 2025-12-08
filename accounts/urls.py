@@ -12,6 +12,7 @@ urlpatterns = [
 
     path('login-flutter/', views.login_flutter, name='login_flutter'), 
     path('register-flutter/', views.register_flutter, name='register_flutter'),
+    path('logout-flutter/', views.logout_flutter, name='logout_flutter'),
 
     path("friends/send/", views.send_friend_request, name="send_friend_request"),
     path("handle-friend-request/", views.handle_friend_request, name="handle_friend_request"),
