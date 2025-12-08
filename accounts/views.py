@@ -198,7 +198,61 @@ def profile_json(request):
         'joined_date': profile.joined_date.strftime("%d %b %Y"),
     })
 
+@csrf_exempt
+def edit_profile_flutter(request):
+    # 1. Validasi Login
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            "status": False,
+            "message": "Maaf, Anda belum login."
+        }, status=401)
 
+    if request.method == 'POST':
+        try:
+            # 2. Parse Data dari Flutter
+            data = json.loads(request.body)
+            user = request.user
+            
+            # Ambil objek Profile milik user tersebut
+            # Kita gunakan get() karena OneToOneField menjamin hanya ada 1 profil per user
+            profile = user.profile
+
+            # --- A. UPDATE EMAIL (Sinkronisasi User & Profile) ---
+            new_email = data.get("email")
+            if new_email:
+                # Update di model User bawaan 
+                user.email = new_email
+                user.save()
+                profile.email = new_email
+                
+            profile.bio = data.get("bio", profile.bio)
+            profile.phone = data.get("phone", profile.phone)
+            profile.address = data.get("address", profile.address)
+            profile.photo_url = data.get("photo_url", profile.photo_url)
+
+            profile.save()
+
+            return JsonResponse({
+                "status": True,
+                "message": "Profil berhasil diperbarui!"
+            }, status=200)
+
+        except Profile.DoesNotExist:
+            return JsonResponse({
+                "status": False,
+                "message": "Profil pengguna tidak ditemukan."
+            }, status=404)
+            
+        except Exception as e:
+            return JsonResponse({
+                "status": False,
+                "message": f"Terjadi kesalahan: {str(e)}"
+            }, status=500)
+
+    return JsonResponse({
+        "status": False,
+        "message": "Method not allowed"
+    }, status=405)
 # FRIEND
 
 from django.contrib.auth.models import User

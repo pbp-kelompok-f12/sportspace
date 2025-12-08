@@ -7,13 +7,16 @@ urlpatterns = [
     path('signup/', views.signup, name='signup'),
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
-    path('profile/', views.profile_view, name='profile'),
-    path('profile/json/', views.profile_json, name='profile_json'),
-
+ 
     path('login-flutter/', views.login_flutter, name='login_flutter'), 
     path('register-flutter/', views.register_flutter, name='register_flutter'),
     path('logout-flutter/', views.logout_flutter, name='logout_flutter'),
 
+       
+    path('profile/', views.profile_view, name='profile'),
+    path('profile/json/', views.profile_json, name='profile_json'),
+    path('edit-profile-flutter', views.edit_profile_flutter, name='edit_profile_flutter'),
+    
     path("friends/send/", views.send_friend_request, name="send_friend_request"),
     path("handle-friend-request/", views.handle_friend_request, name="handle_friend_request"),
     path("friends/", views.friends_json, name="friends_json"),
