@@ -278,6 +278,7 @@ def send_friend_request(request):
                 "status": "friend",
                 "username": target_user.username,
                 "photo_url": target_profile.photo_url,
+                "id": target_user.id,
                 "bio": target_profile.bio or "",
                 "message": ""
             })
@@ -290,13 +291,15 @@ def send_friend_request(request):
                 "username": target_user.username,
                 "photo_url": target_profile.photo_url,
                 "bio": target_profile.bio or "",
-                "message": ""
+                "message": "",
+                "id": target_user.id,
             })
 
         # === 3. Mode pencarian saja ===
         if "search_only" in request.POST:
             return JsonResponse({
                 "success": True,
+                "id": target_user.id,
                 "status": "found",
                 "username": target_user.username,
                 "photo_url": target_profile.photo_url,
@@ -309,6 +312,7 @@ def send_friend_request(request):
         return JsonResponse({
             "success": True,
             "status": "pending",
+            "id": target_user.id,
             "username": target_user.username,
             "photo_url": target_profile.photo_url,
             "bio": target_profile.bio or "",
@@ -366,27 +370,6 @@ def friends_json(request):
         })
 
     return JsonResponse({"friends": data})
-
-# @login_required
-# @require_POST
-# def unfriend(request):
-#     username = request.POST.get("username")
-
-#     try:
-#         target_user = User.objects.get(username=username)
-#     except User.DoesNotExist:
-#         return JsonResponse({"success": False, "message": "User tidak ditemukan."}, status=404)
-
-#     profile = request.user.profile
-#     target_profile = target_user.profile
-
-#     # Cek apakah memang teman
-#     if target_profile in profile.friends.all():
-#         profile.friends.remove(target_profile)
-#         target_profile.friends.remove(profile)
-#         return JsonResponse({"success": True, "message": f"Kamu tidak lagi berteman dengan {username}."})
-#     else:
-#         return JsonResponse({"success": False, "message": "Kamu tidak berteman dengan user ini."}, status=400)
 
 @csrf_exempt
 @login_required
