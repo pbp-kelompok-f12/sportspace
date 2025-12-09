@@ -357,6 +357,25 @@ def handle_friend_request(request):
     return JsonResponse({"success": False, "message": "Aksi tidak valid."})
 
 @login_required
+def show_friend_requests(request):
+    requests = FriendRequest.objects.filter(to_user=request.user)
+    data = []
+    
+    for req in requests:
+        data.append({
+            "id": req.id,  # <-- ID Request (Masuk ke field 'id')
+            "from_user": { # <-- Object (Masuk ke field 'fromUser')
+                "id": req.from_user.id, 
+                "username": req.from_user.username,
+                "photo_url": req.from_user.profile.photo_url or "",
+                "bio": req.from_user.profile.bio or "",
+            },
+            "created_at": req.created_at,
+        })
+        
+    return JsonResponse({"requests": data})
+
+@login_required
 def friends_json(request):
     profile = request.user.profile
     friends = profile.friends.all()
