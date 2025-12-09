@@ -321,41 +321,44 @@ def send_friend_request(request):
 
     return JsonResponse({"success": False, "message": "Gunakan metode POST."})
 
+@csrf_exempt
 @login_required
 @require_POST
 def handle_friend_request(request):
-    action = request.POST.get("action")
-    from_user_id = request.POST.get("from_user_id")
-
     try:
-        friend_request = FriendRequest.objects.get(to_user=request.user, from_user_id=from_user_id)
-    except FriendRequest.DoesNotExist:
-        return JsonResponse({"success": False, "message": "Permintaan tidak ditemukan."}, status=404)
+        data = json.loads(request.body)
+        action = data.get("action")
+        from_user_id = data.get("from_user_id")
+    except json.JSONDecodeError:
+        action = request.POST.get("action")
+        from_user_id = request.POST.get("from_user_id")
 
-    from_user_profile = friend_request.from_user.profile
+    if not action or not from_user_id:
+        return JsonResponse({"success": False, "message": "Data tidak lengkap."}, status=400)
+
+    # === UPDATE: CARA AMBIL DATA AGAR TIDAK CRASH ===
+    # Gunakan filter().first() daripada get()
+    friend_request = FriendRequest.objects.filter(to_user=request.user, from_user_id=from_user_id).first()
+
+    if not friend_request:
+        return JsonResponse({"success": False, "message": "Permintaan pertemanan tidak ditemukan."}, status=404)
+    # ================================================
 
     if action == "accept":
         friend_request.accept()
         return JsonResponse({
             "success": True,
-            "message": f"Kamu sekarang berteman dengan {friend_request.from_user.username}.",
-            "new_friend": {
-                "username": friend_request.from_user.username,
-                "photo_url": from_user_profile.photo_url or "/static/img/defaultprofile.png",
-                "bio": from_user_profile.bio or "",
-            }
+            "message": f"Permintaan diterima.",
         })
 
     elif action == "reject":
         friend_request.delete()
         return JsonResponse({
             "success": True,
-            "message": "Permintaan pertemanan ditolak.",
-            "new_friend": None
+            "message": "Permintaan ditolak.",
         })
 
     return JsonResponse({"success": False, "message": "Aksi tidak valid."})
-
 @login_required
 def show_friend_requests(request):
     requests = FriendRequest.objects.filter(to_user=request.user)
