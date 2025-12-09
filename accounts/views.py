@@ -256,10 +256,32 @@ def edit_profile_flutter(request):
 
 # FRIEND
 
+import json
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt # <--- WAJIB IMPORT
+from django.contrib.auth.models import User
+from .models import FriendRequest # Pastikan import model sesuai
+
+@csrf_exempt # <--- TAMBAHKAN INI (Mengatasi error <!DOCTYPE HTML...)
 @login_required
 def send_friend_request(request):
     if request.method == "POST":
-        username = request.POST.get("username")
+        # === UPDATE 1: BACA JSON DARI FLUTTER ===
+        try:
+            data = json.loads(request.body)
+            username = data.get("username")
+            # Cek apakah ini mode search_only
+            search_only = data.get("search_only", False)
+        except json.JSONDecodeError:
+            # Fallback jika request bukan JSON (misal dari Postman Form-Data)
+            username = request.POST.get("username")
+            search_only = "search_only" in request.POST
+        # ========================================
+
+        if not username:
+             return JsonResponse({"success": False, "message": "Username tidak boleh kosong."})
+
         target_user = User.objects.filter(username=username).first()
 
         if not target_user:
@@ -277,7 +299,7 @@ def send_friend_request(request):
                 "success": True,
                 "status": "friend",
                 "username": target_user.username,
-                "photo_url": target_profile.photo_url,
+                "photo_url": target_profile.photo_url or "/static/img/defaultprofile.png",
                 "id": target_user.id,
                 "bio": target_profile.bio or "",
                 "message": ""
@@ -289,32 +311,39 @@ def send_friend_request(request):
                 "success": True,
                 "status": "pending",
                 "username": target_user.username,
-                "photo_url": target_profile.photo_url,
+                "photo_url": target_profile.photo_url or "/static/img/defaultprofile.png",
                 "bio": target_profile.bio or "",
                 "message": "",
                 "id": target_user.id,
             })
 
         # === 3. Mode pencarian saja ===
-        if "search_only" in request.POST:
+        # Kita cek variable search_only yang sudah diparsing di atas
+        if search_only: 
             return JsonResponse({
                 "success": True,
                 "id": target_user.id,
                 "status": "found",
                 "username": target_user.username,
-                "photo_url": target_profile.photo_url,
+                "photo_url": target_profile.photo_url or "/static/img/defaultprofile.png",
                 "bio": target_profile.bio or "",
                 "message": ""
             })
 
-        # === 4. Kirim permintaan baru ===
+        # === 4. Kirim permintaan baru (Eksekusi Add) ===
+        # Cek dulu apakah request sebaliknya sudah ada (A request ke B, tapi B sudah request ke A)
+        reverse_req = FriendRequest.objects.filter(from_user=target_user, to_user=request.user).first()
+        if reverse_req:
+             # Opsional: Langsung accept jika sebaliknya sudah request
+             return JsonResponse({"success": False, "message": "User ini sudah mengirim permintaan kepadamu. Cek tab Request!"})
+
         FriendRequest.objects.create(from_user=request.user, to_user=target_user)
         return JsonResponse({
             "success": True,
             "status": "pending",
             "id": target_user.id,
             "username": target_user.username,
-            "photo_url": target_profile.photo_url,
+            "photo_url": target_profile.photo_url or "/static/img/defaultprofile.png",
             "bio": target_profile.bio or "",
             "message": f"Permintaan dikirim ke {target_user.username}."
         })
