@@ -359,6 +359,7 @@ def handle_friend_request(request):
         })
 
     return JsonResponse({"success": False, "message": "Aksi tidak valid."})
+
 @login_required
 def show_friend_requests(request):
     requests = FriendRequest.objects.filter(to_user=request.user)
@@ -379,6 +380,7 @@ def show_friend_requests(request):
         })
         
     return JsonResponse({"requests": data})
+
 @login_required
 def friends_json(request):
     profile = request.user.profile
@@ -452,6 +454,7 @@ def get_friend_suggestions(request):
 
     data = [
         {
+            "id": s.user.id,
             "username": s.user.username,
             "photo_url": s.photo_url or "/static/img/defaultprofile.png",
             "bio": s.bio or "Aktif bermain padel!",
