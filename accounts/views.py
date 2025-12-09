@@ -8,6 +8,8 @@ from .models import Profile, FriendRequest, ChatMessage
 from django.views.decorators.http import require_POST
 from django.contrib.auth import authenticate, login as auth_login
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
+
 import json
 
 # SIGN UP
@@ -38,7 +40,6 @@ def login(request):
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
-
 
 # LOGOUT
 def logout(request):
@@ -73,7 +74,6 @@ def login_flutter(request):
             "status": False,
             "message": "Login failed, please check your username or password."
         }, status=401)
-
 
 @csrf_exempt
 def register_flutter(request):
@@ -224,7 +224,7 @@ def edit_profile_flutter(request):
                 user.email = new_email
                 user.save()
                 profile.email = new_email
-                
+
             profile.bio = data.get("bio", profile.bio)
             profile.phone = data.get("phone", profile.phone)
             profile.address = data.get("address", profile.address)
@@ -253,9 +253,8 @@ def edit_profile_flutter(request):
         "status": False,
         "message": "Method not allowed"
     }, status=405)
-# FRIEND
 
-from django.contrib.auth.models import User
+# FRIEND
 
 @login_required
 def send_friend_request(request):
@@ -368,26 +367,60 @@ def friends_json(request):
 
     return JsonResponse({"friends": data})
 
+# @login_required
+# @require_POST
+# def unfriend(request):
+#     username = request.POST.get("username")
+
+#     try:
+#         target_user = User.objects.get(username=username)
+#     except User.DoesNotExist:
+#         return JsonResponse({"success": False, "message": "User tidak ditemukan."}, status=404)
+
+#     profile = request.user.profile
+#     target_profile = target_user.profile
+
+#     # Cek apakah memang teman
+#     if target_profile in profile.friends.all():
+#         profile.friends.remove(target_profile)
+#         target_profile.friends.remove(profile)
+#         return JsonResponse({"success": True, "message": f"Kamu tidak lagi berteman dengan {username}."})
+#     else:
+#         return JsonResponse({"success": False, "message": "Kamu tidak berteman dengan user ini."}, status=400)
+
+@csrf_exempt
 @login_required
-@require_POST
 def unfriend(request):
-    username = request.POST.get("username")
+    if request.method == 'POST':
+        # --- BAGIAN INI YANG DIPERBAIKI ---
+        try:
+            # 1. Coba baca data dari JSON (Cara Flutter kirim)
+            data = json.loads(request.body)
+            username = data.get("username")
+        except json.JSONDecodeError:
+            # 2. Fallback baca dari Form Data (jika testing pakai Postman/HTML)
+            username = request.POST.get("username")
+        # ----------------------------------
 
-    try:
-        target_user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return JsonResponse({"success": False, "message": "User tidak ditemukan."}, status=404)
+        if not username:
+            return JsonResponse({"success": False, "message": "Username tidak ditemukan dalam request."}, status=400)
 
-    profile = request.user.profile
-    target_profile = target_user.profile
+        try:
+            target_user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return JsonResponse({"success": False, "message": "User tidak ditemukan."}, status=404)
 
-    # Cek apakah memang teman
-    if target_profile in profile.friends.all():
-        profile.friends.remove(target_profile)
-        target_profile.friends.remove(profile)
-        return JsonResponse({"success": True, "message": f"Kamu tidak lagi berteman dengan {username}."})
-    else:
-        return JsonResponse({"success": False, "message": "Kamu tidak berteman dengan user ini."}, status=400)
+        profile = request.user.profile
+        target_profile = target_user.profile
+
+        if target_profile in profile.friends.all():
+            profile.friends.remove(target_profile)
+            target_profile.friends.remove(profile)
+            return JsonResponse({"success": True, "message": f"Kamu tidak lagi berteman dengan {username}."})
+        else:
+            return JsonResponse({"success": False, "message": "Kamu tidak berteman dengan user ini."}, status=400)
+
+    return JsonResponse({"success": False, "message": "Method not allowed"}, status=405)
 
 @login_required
 def get_request_count(request):
