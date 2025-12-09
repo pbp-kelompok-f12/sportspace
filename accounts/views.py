@@ -363,9 +363,11 @@ def show_friend_requests(request):
     
     for req in requests:
         data.append({
-            "id": req.id,  # <-- ID Request (Masuk ke field 'id')
-            "from_user": { # <-- Object (Masuk ke field 'fromUser')
+            "id": req.id, 
+            "from_user": { 
+                # === PASTIKAN BARIS INI ADA ===
                 "id": req.from_user.id, 
+                # ==============================
                 "username": req.from_user.username,
                 "photo_url": req.from_user.profile.photo_url or "",
                 "bio": req.from_user.profile.bio or "",
@@ -374,7 +376,6 @@ def show_friend_requests(request):
         })
         
     return JsonResponse({"requests": data})
-
 @login_required
 def friends_json(request):
     profile = request.user.profile
