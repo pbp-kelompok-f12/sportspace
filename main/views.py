@@ -143,3 +143,4 @@ def show_json_by_id(request, venue_id):
         return HttpResponse(status=404)
     json_data = serializers.serialize("json", [venue_item])
     return HttpResponse(json_data, content_type="application/json")
+

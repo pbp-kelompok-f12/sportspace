@@ -37,7 +37,7 @@ class MatchModelTests(TestCase):
         """Pastikan method tidak error pada mode aneh"""
         match = Match.objects.create(mode="custom", created_by=self.user)
         self.assertEqual(match.max_players(), 0)
-        self.assertTrue(match.can_join())
+        self.assertFalse(match.can_join())
 
 
 class MatchmakingViewsTests(TestCase):

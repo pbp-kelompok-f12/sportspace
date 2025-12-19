@@ -183,7 +183,7 @@ def update_user_ajax(request, id):
     """Edit data pengguna"""
     try:
         user = User.objects.get(pk=id)
-        profile = user.profile
+        profile, _ = Profile.objects.get_or_create(user=user)
         data = json.loads(request.body)
 
         user.username = data.get('username', user.username)

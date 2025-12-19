@@ -35,6 +35,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "sean-marcello-sportspace.pbp.cs.ui.ac.id",
+    "10.0.2.2"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -58,10 +59,12 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'home',
     'matchmaking',
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -71,7 +74,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-GOOGLE_MAPS_API_KEY = 'AIzaSyB-EBEHoKCnM1BkHC8eD1F3zwbV7uB86-c'
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
+
+# Google Maps API Key - use environment variable for production
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', 'AIzaSyB-EBEHoKCnM1BkHC8eD1F3zwbV7uB86-c')
 
 ROOT_URLCONF = 'sportspace.urls'
 
@@ -91,9 +102,10 @@ TEMPLATES = [
     },
 ]
 
-GOOGLE_MAPS_API_KEY = 'AIzaSyB-EBEHoKCnM1BkHC8eD1F3zwbV7uB86-c'
+# Remove duplicate - already set above
 
 WSGI_APPLICATION = 'sportspace.wsgi.application'
+
 
 
 # Database
@@ -143,6 +155,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -170,7 +183,7 @@ else:
     STATIC_ROOT = BASE_DIR / 'static' # merujuk ke /static root project pada mode production
 
 # Auth redirects
-LOGIN_URL = '/login/'
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/home/'
 LOGOUT_REDIRECT_URL = '/'
 

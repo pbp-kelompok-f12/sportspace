@@ -1,13 +1,16 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .forms import SignUpForm, ProfileForm
-from .models import Profile
+from .models import Profile, FriendRequest, ChatMessage
+from django.views.decorators.http import require_POST
+from django.contrib.auth import authenticate, login as auth_login
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
+
+import json
 
 # SIGN UP
 def signup(request):
@@ -20,7 +23,6 @@ def signup(request):
     else:
         form = SignUpForm()
     return render(request, 'signup.html', {'form': form})
-
 
 # LOGIN
 def login(request):
@@ -39,21 +41,112 @@ def login(request):
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
 
-
 # LOGOUT
 def logout(request):
     auth_logout(request)
     return redirect('accounts:login')
 
-# # DASHBOARD PER ROLE
-# @login_required
-# def admin_dashboard(request):
-#     return render(request, 'admin_dashboard.html')
+# FLUTTER AUTHENTICATION
+
+@csrf_exempt
+def login_flutter(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        if user.is_active:
+            auth_login(request, user)
+            # Login status successful.
+            return JsonResponse({
+                "username": user.username,
+                "status": True,
+                "message": "Login successful!"
+                # Add other data if you want to send data to Flutter.
+            }, status=200)
+        else:
+            return JsonResponse({
+                "status": False,
+                "message": "Login failed, account is disabled."
+            }, status=401)
+
+    else:
+        return JsonResponse({
+            "status": False,
+            "message": "Login failed, please check your username or password."
+        }, status=401)
+
+@csrf_exempt
+def register_flutter(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data['username']
+        email = data['email']
+        password1 = data['password1']
+        password2 = data['password2']
+
+        # Check if the passwords match
+        if password1 != password2:
+            return JsonResponse({
+                "status": False,
+                "message": "Passwords do not match."
+            }, status=400)
+        
+        # Check if the username is already taken
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({
+                "status": False,
+                "message": "Username already exists."
+            }, status=400)
+        
+        # Create the new user
+        user = User.objects.create_user(username=username, email=email, password=password1)
+        user.save()
+
+        profile = user.profile 
+        profile.email = email
+        profile.save()
+        
+        return JsonResponse({
+            "username": user.username,
+            "status": 'success',
+            "message": "User created successfully!"
+        }, status=200)
+    
+    else:
+        return JsonResponse({
+            "status": False,
+            "message": "Invalid request method."
+        }, status=400)
+
+@csrf_exempt
+def logout_flutter(request):
+    username = request.user.username
+    try:
+        auth_logout(request)
+        return JsonResponse({
+            "username": username,
+            "status": True,
+            "message": "Logged out successfully!"
+        }, status=200)
+    except:
+        return JsonResponse({
+            "status": False,
+            "message": "Logout failed."
+        }, status=401)
 
 @login_required
 def profile_view(request):
     # Pastikan profile selalu ada
     profile, _ = Profile.objects.get_or_create(user=request.user)
+    received_requests = FriendRequest.objects.filter(to_user=request.user, is_accepted=False)
+    friends = profile.friends.all()
+    suggestions = (
+        Profile.objects
+        .filter(role="customer")
+        .exclude(id=profile.id)
+        .exclude(id__in=profile.friends.all())
+        .order_by("?")[:15]  # acak biar dinamis
+    )
 
     if request.method == 'POST':
         form = ProfileForm(request.POST, instance=profile)
@@ -66,6 +159,7 @@ def profile_view(request):
                 'phone': profile.phone,
                 'address': profile.address,
                 'photo_url': profile.photo_url,
+                'bio': profile.bio,
             })
         else:
             return JsonResponse({'success': False, 'errors': form.errors}, status=400)
@@ -73,44 +167,374 @@ def profile_view(request):
     # GET request
     else:
         form = ProfileForm(instance=profile)
-        return render(request, 'profile.html', {
-            'profile': profile,
-            'form': form
+        return render(request, "profile.html", {
+            "profile": profile,
+            "friends": friends,
+            "received_requests": received_requests,
+            "suggestions": suggestions,
+            "total_booking": profile.total_booking,
+            "average_rating": profile.avg_rating,
+            "joined_date": profile.joined_date.strftime("%d %b %Y"),
+            "form": form,
         })
 
-
-# @login_required
-# def edit_profile(request):
-#     # Ambil profil user yang sedang login
-#     profile = request.user.profile
-
-#     # Jika email di Profile masih kosong, isi dari User.email
-#     if not profile.email:
-#         profile.email = request.user.email
-
-#     if request.method == 'POST':
-#         # Ambil data POST dan isi ke instance profile yang sudah ada
-#         form = ProfileForm(request.POST, request.FILES, instance=profile)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('accounts:profile') 
-#     else:
-#         # isi form dengan data lama
-#         form = ProfileForm(instance=profile)
-
-#     context = {'form': form}
-#     return render(request, 'edit_profile.html', context)
-
-
 # JSON PROFILE (untuk AJAX)
+
 @login_required
 def profile_json(request):
     profile = request.user.profile
-    data = {
+    return JsonResponse({
         'username': request.user.username,
-        'email': request.user.email,
-        'role': profile.role,
+        "role": profile.role,
+        'success': True,
+        'message': 'Profil berhasil diperbarui!',
+        'email': profile.email,
         'phone': profile.phone,
         'address': profile.address,
-    }
-    return JsonResponse(data)
+        'photo_url': profile.photo_url,
+        'bio': profile.bio,
+        'total_booking': profile.total_booking,
+        'avg_rating': profile.avg_rating,
+        'joined_date': profile.joined_date.strftime("%d %b %Y"),
+    })
+
+@csrf_exempt
+def edit_profile_flutter(request):
+    # 1. Validasi Login
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            "status": False,
+            "message": "Maaf, Anda belum login."
+        }, status=401)
+
+    if request.method == 'POST':
+        try:
+            # 2. Parse Data dari Flutter
+            data = json.loads(request.body)
+            user = request.user
+            
+            # Ambil objek Profile milik user tersebut
+            # Kita gunakan get() karena OneToOneField menjamin hanya ada 1 profil per user
+            profile = user.profile
+
+            # --- A. UPDATE EMAIL (Sinkronisasi User & Profile) ---
+            new_email = data.get("email")
+            if new_email:
+                # Update di model User bawaan 
+                user.email = new_email
+                user.save()
+                profile.email = new_email
+
+            profile.bio = data.get("bio", profile.bio)
+            profile.phone = data.get("phone", profile.phone)
+            profile.address = data.get("address", profile.address)
+            profile.photo_url = data.get("photo_url", profile.photo_url)
+
+            profile.save()
+
+            return JsonResponse({
+                "status": True,
+                "message": "Profil berhasil diperbarui!"
+            }, status=200)
+
+        except Profile.DoesNotExist:
+            return JsonResponse({
+                "status": False,
+                "message": "Profil pengguna tidak ditemukan."
+            }, status=404)
+            
+        except Exception as e:
+            return JsonResponse({
+                "status": False,
+                "message": f"Terjadi kesalahan: {str(e)}"
+            }, status=500)
+
+    return JsonResponse({
+        "status": False,
+        "message": "Method not allowed"
+    }, status=405)
+
+# FRIEND
+
+import json
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt # <--- WAJIB IMPORT
+from django.contrib.auth.models import User
+from .models import FriendRequest # Pastikan import model sesuai
+
+@csrf_exempt # <--- TAMBAHKAN INI (Mengatasi error <!DOCTYPE HTML...)
+@login_required
+def send_friend_request(request):
+    if request.method == "POST":
+        # === UPDATE 1: BACA JSON DARI FLUTTER ===
+        try:
+            data = json.loads(request.body)
+            username = data.get("username")
+            # Cek apakah ini mode search_only
+            search_only = data.get("search_only", False)
+        except json.JSONDecodeError:
+            # Fallback jika request bukan JSON (misal dari Postman Form-Data)
+            username = request.POST.get("username")
+            search_only = "search_only" in request.POST
+        # ========================================
+
+        if not username:
+             return JsonResponse({"success": False, "message": "Username tidak boleh kosong."})
+
+        target_user = User.objects.filter(username=username).first()
+
+        if not target_user:
+            return JsonResponse({"success": False, "message": "User tidak ditemukan."})
+
+        if target_user == request.user:
+            return JsonResponse({"success": False, "message": "Tidak bisa menambahkan diri sendiri."})
+
+        target_profile = target_user.profile
+        user_profile = request.user.profile
+
+        # === 1. Sudah berteman ===
+        if target_profile in user_profile.friends.all():
+            return JsonResponse({
+                "success": True,
+                "status": "friend",
+                "username": target_user.username,
+                "photo_url": target_profile.photo_url or "/static/img/defaultprofile.png",
+                "id": target_user.id,
+                "bio": target_profile.bio or "",
+                "message": ""
+            })
+
+        # === 2. Ada request pending ===
+        if FriendRequest.objects.filter(from_user=request.user, to_user=target_user).exists():
+            return JsonResponse({
+                "success": True,
+                "status": "pending",
+                "username": target_user.username,
+                "photo_url": target_profile.photo_url or "/static/img/defaultprofile.png",
+                "bio": target_profile.bio or "",
+                "message": "",
+                "id": target_user.id,
+            })
+
+        # === 3. Mode pencarian saja ===
+        # Kita cek variable search_only yang sudah diparsing di atas
+        if search_only: 
+            return JsonResponse({
+                "success": True,
+                "id": target_user.id,
+                "status": "found",
+                "username": target_user.username,
+                "photo_url": target_profile.photo_url or "/static/img/defaultprofile.png",
+                "bio": target_profile.bio or "",
+                "message": ""
+            })
+
+        # === 4. Kirim permintaan baru (Eksekusi Add) ===
+        # Cek dulu apakah request sebaliknya sudah ada (A request ke B, tapi B sudah request ke A)
+        reverse_req = FriendRequest.objects.filter(from_user=target_user, to_user=request.user).first()
+        if reverse_req:
+             # Opsional: Langsung accept jika sebaliknya sudah request
+             return JsonResponse({"success": False, "message": "User ini sudah mengirim permintaan kepadamu. Cek tab Request!"})
+
+        FriendRequest.objects.create(from_user=request.user, to_user=target_user)
+        return JsonResponse({
+            "success": True,
+            "status": "pending",
+            "id": target_user.id,
+            "username": target_user.username,
+            "photo_url": target_profile.photo_url or "/static/img/defaultprofile.png",
+            "bio": target_profile.bio or "",
+            "message": f"Permintaan dikirim ke {target_user.username}."
+        })
+
+    return JsonResponse({"success": False, "message": "Gunakan metode POST."})
+
+@csrf_exempt
+@login_required
+@require_POST
+def handle_friend_request(request):
+    try:
+        data = json.loads(request.body)
+        action = data.get("action")
+        from_user_id = data.get("from_user_id")
+    except json.JSONDecodeError:
+        action = request.POST.get("action")
+        from_user_id = request.POST.get("from_user_id")
+
+    if not action or not from_user_id:
+        return JsonResponse({"success": False, "message": "Data tidak lengkap."}, status=400)
+
+    # === UPDATE: CARA AMBIL DATA AGAR TIDAK CRASH ===
+    # Gunakan filter().first() daripada get()
+    friend_request = FriendRequest.objects.filter(to_user=request.user, from_user_id=from_user_id).first()
+
+    if not friend_request:
+        return JsonResponse({"success": False, "message": "Permintaan pertemanan tidak ditemukan."}, status=404)
+    # ================================================
+
+    if action == "accept":
+        friend_request.accept()
+        return JsonResponse({
+            "success": True,
+            "message": f"Permintaan diterima.",
+        })
+
+    elif action == "reject":
+        friend_request.delete()
+        return JsonResponse({
+            "success": True,
+            "message": "Permintaan ditolak.",
+        })
+
+    return JsonResponse({"success": False, "message": "Aksi tidak valid."})
+
+@login_required
+def show_friend_requests(request):
+    requests = FriendRequest.objects.filter(to_user=request.user)
+    data = []
+    
+    for req in requests:
+        data.append({
+            "id": req.id, 
+            "from_user": { 
+                # === PASTIKAN BARIS INI ADA ===
+                "id": req.from_user.id, 
+                # ==============================
+                "username": req.from_user.username,
+                "photo_url": req.from_user.profile.photo_url or "",
+                "bio": req.from_user.profile.bio or "",
+            },
+            "created_at": req.created_at,
+        })
+        
+    return JsonResponse({"requests": data})
+
+@login_required
+def friends_json(request):
+    profile = request.user.profile
+    friends = profile.friends.all()
+
+    data = []
+    for f in friends:
+        data.append({
+            "username": f.user.username,
+            "photo_url": f.photo_url or "/static/img/defaultprofile.png",
+            "bio": f.bio or "",
+        })
+
+    return JsonResponse({"friends": data})
+
+@csrf_exempt
+@login_required
+def unfriend(request):
+    if request.method == 'POST':
+        # --- BAGIAN INI YANG DIPERBAIKI ---
+        try:
+            # 1. Coba baca data dari JSON (Cara Flutter kirim)
+            data = json.loads(request.body)
+            username = data.get("username")
+        except json.JSONDecodeError:
+            # 2. Fallback baca dari Form Data (jika testing pakai Postman/HTML)
+            username = request.POST.get("username")
+        # ----------------------------------
+
+        if not username:
+            return JsonResponse({"success": False, "message": "Username tidak ditemukan dalam request."}, status=400)
+
+        try:
+            target_user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return JsonResponse({"success": False, "message": "User tidak ditemukan."}, status=404)
+
+        profile = request.user.profile
+        target_profile = target_user.profile
+
+        if target_profile in profile.friends.all():
+            profile.friends.remove(target_profile)
+            target_profile.friends.remove(profile)
+            return JsonResponse({"success": True, "message": f"Kamu tidak lagi berteman dengan {username}."})
+        else:
+            return JsonResponse({"success": False, "message": "Kamu tidak berteman dengan user ini."}, status=400)
+
+    return JsonResponse({"success": False, "message": "Method not allowed"}, status=405)
+
+@login_required
+def get_request_count(request):
+    count = FriendRequest.objects.filter(to_user=request.user, is_accepted=False).count()
+    return JsonResponse({"count": count})
+
+@login_required
+def get_friend_count(request):
+    profile = request.user.profile
+    count = profile.friends.count()
+    return JsonResponse({"count": count})
+
+@login_required
+def get_friend_suggestions(request):
+    profile = request.user.profile
+    suggestions = (
+        Profile.objects
+        .filter(role="customer")
+        .exclude(id=profile.id)
+        .exclude(id__in=profile.friends.all())
+        .order_by("?")[:15]
+    )
+
+    data = [
+        {
+            "id": s.user.id,
+            "username": s.user.username,
+            "photo_url": s.photo_url or "/static/img/defaultprofile.png",
+            "bio": s.bio or "Aktif bermain padel!",
+        }
+        for s in suggestions
+    ]
+    return JsonResponse({"suggestions": data})
+
+@login_required
+def get_chat_history(request, username):
+
+    target = User.objects.filter(username=username).first()
+    if not target:
+        return JsonResponse({"success": False, "message": "User tidak ditemukan."})
+
+    # Pastikan mereka teman
+    if target.profile not in request.user.profile.friends.all():
+        return JsonResponse({"success": False, "message": "Bukan teman."})
+
+    messages = ChatMessage.objects.filter(
+        sender__in=[request.user, target],
+        receiver__in=[request.user, target]
+    ).order_by("timestamp")
+
+    data = [
+        {   "sender": msg.sender.username,
+            "message": msg.message,
+            "timestamp": msg.timestamp.isoformat()
+        } for msg in messages]
+
+    return JsonResponse({"success": True, "messages": data})
+
+@login_required
+def send_chat_message(request):
+
+    if request.method != "POST":
+        return JsonResponse({"success": False, "message": "Gunakan metode POST."})
+
+    username = request.POST.get("username")
+    text = request.POST.get("message")
+
+    if not text:
+        return JsonResponse({"success": False, "message": "Pesan kosong."})
+
+    target = User.objects.filter(username=username).first()
+
+    if not target:
+        return JsonResponse({"success": False, "message": "User tidak ditemukan."})
+
+    if target.profile not in request.user.profile.friends.all():
+        return JsonResponse({"success": False, "message": "Tidak dapat mengirim pesan ke non-teman."})
+
+    ChatMessage.objects.create(sender=request.user, receiver=target, message=text)
+    return JsonResponse({"success": True, "message": "Pesan terkirim."})

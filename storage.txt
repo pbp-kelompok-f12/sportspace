@@ -766,38 +766,29 @@ async function openChatModal(username) {
     chatContent.classList.add("scale-100", "opacity-100");
   });
 
+  // tampilkan indikator loading
   chatBox.innerHTML = `<p class="text-gray-400 italic text-center">Memuat percakapan...</p>`;
 
   try {
-  const res = await fetch(`/accounts/chat/${username}/`, {
-    method: "GET",
-    credentials: "same-origin",
-    headers: { "Accept": "application/json" },
-  });
+    const res = await fetch(`/accounts/chat/${currentChatUser}/`);
+    const data = await res.json();
 
-  let data;
-  try {
-    data = await res.clone().json(); // clone response agar body bisa dibaca lagi
+    if (data.success) {
+      chatBox.innerHTML = "";
+
+      data.messages.forEach((msg) => {
+        const isFriend = msg.sender === username;
+        addChatMessage(msg.message, msg.sender, msg.timestamp, isFriend);
+      });
+    } else {
+      chatBox.innerHTML = `<p class="text-red-500 italic text-center">${data.message}</p>`;
+    }
   } catch (err) {
-    const text = await res.text();
-    throw new Error(`Response bukan JSON. Response text:\n${text}`);
+    console.error(err);
+    chatBox.innerHTML = `<p class="text-red-500 italic text-center">Gagal memuat percakapan.</p>`;
   }
-
-  if (data.success) {
-    chatBox.innerHTML = "";
-    data.messages.forEach(msg => {
-      addChatMessage(msg.message, msg.sender, msg.timestamp);
-    });
-  } else {
-    chatBox.innerHTML = `<p class="text-red-500 italic text-center">${data.message}</p>`;
-  }
-
-} catch (err) {
-  console.error(err);
-  chatBox.innerHTML = `<p class="text-red-500 italic text-center">Gagal memuat percakapan: ${err.message}</p>`;
 }
 
-}
 // Tutup modal chat
 closeChatBtn.addEventListener("click", () => closeModal(chatModal, chatContent));
 chatModal.addEventListener("click", (e) => {

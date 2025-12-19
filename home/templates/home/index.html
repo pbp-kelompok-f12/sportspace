@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<main>
+<main data-user-id="{{ user_id }}" data-is-superuser="{{ is_superuser|lower }}">
     <section class="hero-section">
         <!-- ... Konten Hero Section (tidak berubah) ... -->
         <div class="container">
@@ -20,8 +20,9 @@
                                     <option selected>Pilih Lokasi</option>
                                     <option value="jakarta selatan">Jakarta Selatan</option>
                                     <option value="jakarta pusat">Jakarta Pusat</option>
-                                    <option value="jakarta timur">Jakarta Timur</option>
                                     <option value="jakarta barat">Jakarta Barat</option>
+                                    <option value="jakarta timur">Jakarta Timur</option>
+                                    <option value="jakarta utara">Jakarta Utara</option>
                                 </select>
                                 <button type="submit" class="btn btn-search">Search</button>
                             </div>
@@ -48,12 +49,24 @@
     <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true"><div class="d-flex"><div class="toast-body"><i class="bi bi-x-circle-fill me-2"></i><span id="errorMessage"></span></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>
 </div>
 
-
 <!-- SCRIPTS -->
 <script src="{% static 'home/js/toast.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
     let allLapangan = [];
-    document.addEventListener('DOMContentLoaded', loadLapangan);
+
+    let currentUserId;
+    let isSuperuser;
+    document.addEventListener('DOMContentLoaded', () => {
+        // Ambil data user dari atribut data-* setelah DOM dimuat
+        const mainElement = document.querySelector('main');
+        currentUserId = parseInt(mainElement.dataset.userId, 10);
+        isSuperuser = mainElement.dataset.isSuperuser === 'true';
+        
+        // Muat data lapangan
+        loadLapangan();
+    });
 
     async function loadLapangan() {
         try {
@@ -77,6 +90,16 @@
         return lapanganList.map(item => {
             const fields = item.fields;
             const thumbnailUrl = fields.thumbnail_url || 'https://via.placeholder.com/300x180.png?text=No+Image';
+            const venueId = item.pk;
+
+            const safeNama = fields.nama.replace(/'/g, "\\'");
+            const safeAlamat = fields.alamat.replace(/'/g, "\\'");
+            const safeThumbnailUrl = thumbnailUrl.replace(/'/g, "\\'");
+            const addedBy = Number(fields.added_by);
+
+            // Cek apakah user boleh mengedit/menghapus
+            const canModify = isSuperuser || Number(fields.added_by) === currentUserId;
+
             return `
                 <div class="court-card">
                     <img src="${thumbnailUrl}" alt="${fields.nama}">
@@ -85,10 +108,76 @@
                         <p>${fields.alamat.split(' ').slice(0, 4).join(' ')}...</p>
                         ${fields.rating ? `<p class="text-muted">Rating: ${fields.rating} ⭐ (${fields.total_review || 0} reviews)</p>` : ''}
                         
+                        <div class="mt-2 d-flex justify-content-start gap-2">
+                            <button class="btn btn-sm btn-success" onclick="goToBooking('${safeNama}', '${safeAlamat}', '${safeThumbnailUrl}')">Book Now</button>
+                            <a href="/review/all/${venueId}/" class="btn btn-sm btn-outline-primary">Reviews</a>
+                            ${canModify ? `
+                                <button class="btn btn-sm btn-warning" onclick="showEditModal(${venueId})">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteLapangan(${venueId})">Delete</button>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>`;
         }).join('');
     }
+
+
+    async function deleteLapangan(id) {
+        if (!confirm('Are you sure you want to delete this venue?')) return;
+        try {
+            const response = await fetch(`/home/api/lapangan/${id}/delete/`, {
+                method: 'DELETE',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            });
+            const result = await response.json();
+            showToast(result.message, response.ok);
+            if (response.ok) await loadLapangan();
+        } catch (error) {
+            console.error('Error deleting venue:', error);
+            showToast('Failed to delete venue.', false);
+        }
+    }
+    async function saveLapangan() {
+        const form = document.getElementById('lapanganForm');
+        const lapanganId = document.getElementById('lapanganId').value;
+        const url = lapanganId ? `/home/api/lapangan/${lapanganId}/update/` : "{% url 'home:create_lapangan_ajax' %}";
+        const method = 'POST'; // Update dan Create sama-sama POST
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        // Konversi checkbox ke boolean
+        data.is_featured = form.elements['is_featured'].checked;
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            showToast(result.message, response.ok);
+
+            if (response.ok) {
+                const modalElement = document.getElementById('lapanganModal');
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                modal.hide();
+                await loadLapangan(); // Muat ulang data untuk menampilkan perubahan
+            }
+        } catch (error) {
+            console.error('Error saving data:', error);
+            showToast('Failed to save data.', false);
+        }
+    }
+
+    function showEditModal(id) {
+        loadAndShowModal(`/home/lapangan/modal/edit/${id}/`);
+    }
+
+
     async function loadAndShowModal(url) {
         try {
             const response = await fetch(url);
@@ -110,87 +199,16 @@
             showToast('Could not load the form.', false);
         }
     }
-
-    function showCreateModal() {
-        loadAndShowModal("{% url 'home:get_lapangan_modal_add' %}");
-    }
-
-    function editLapangan(id) {
-        // Django tidak bisa mereverse URL dengan argumen di template JS, jadi kita buat manual
-        const url = `/lapangan/modal/edit/${id}/`;
-        loadAndShowModal(url);
-    }
-
-    async function saveLapangan() {
-        const form = document.getElementById('lapanganForm');
-        const lapanganId = document.getElementById('lapanganId').value;
-        const data = {
-            place_id: form.querySelector('#id_place_id').value,
-            nama: form.querySelector('#id_nama').value,
-            alamat: form.querySelector('#id_alamat').value,
-            rating: form.querySelector('#id_rating').value || null,
-            total_review: form.querySelector('#id_total_review').value || null,
-            thumbnail_url: form.querySelector('#id_thumbnail_url').value,
-            notes: form.querySelector('#id_notes').value,
-            is_featured: form.querySelector('#id_is_featured').checked
-        };
-
-        if (!data.place_id || !data.nama || !data.alamat) {
-            showToast('Place ID, Nama, and Alamat are required!', false);
-            return;
-        }
-
-        const url = lapanganId ? `/api/lapangan/${lapanganId}/update/` : "{% url 'home:create_lapangan_ajax' %}";
-        
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify(data)
-            });
-            const result = await response.json();
-
-            if (response.ok) {
-                const modalEl = document.getElementById('lapanganModal');
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                modal.hide();
-                showToast(result.message, true);
-                await loadLapangan();
-            } else {
-                showToast('Error: ' + result.message, false);
-            }
-        } catch (error) {
-            console.error('Error saving lapangan:', error);
-            showToast('Failed to save data.', false);
-        }
-    }
-
-    async function deleteLapangan(id) {
-        if (!confirm('Are you sure you want to delete this venue?')) return;
-        try {
-            const response = await fetch(`/home/api/lapangan/${id}/delete/`, {
-                method: 'DELETE',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') }
-            });
-            const result = await response.json();
-            showToast(result.message, response.ok);
-            if (response.ok) await loadLapangan();
-        } catch (error) {
-            console.error('Error deleting venue:', error);
-            showToast('Failed to delete venue.', false);
-        }
-    }
-
     async function refreshFromAPI() {
         if (!confirm('Refresh data from Google Maps API? This will update all venue data.')) return;
         try {
             const response = await fetch("{% url 'home:refresh_from_api' %}");
             const result = await response.json();
-            showToast(result.message, response.ok);
-            if (response.ok) await loadLapangan();
+            showToast(result.message, result.status === 'success');
+            if (result.status === 'success') await loadLapangan();
         } catch (error) {
             console.error('Error refreshing data:', error);
-            showToast('Failed to refresh data.', false);
+            showToast('Failed to refresh data.', 'error');
         }
     }
 
@@ -211,6 +229,38 @@
     function scrollCarousel(carouselId, amount) { document.getElementById(carouselId).scrollLeft += amount; }
     function getCookie(name) {
         let cookieValue = null; if (document.cookie && document.cookie !== '') { const cookies = document.cookie.split(';'); for (let i = 0; i < cookies.length; i++) { const cookie = cookies[i].trim(); if (cookie.substring(0, name.length + 1) === (name + '=')) { cookieValue = decodeURIComponent(cookie.substring(name.length + 1)); break; } } } return cookieValue;
+    }
+    async function goToBooking(nama, alamat, thumbnailUrl) {
+        try {
+            // First, create or get the venue in the booking system
+            const response = await fetch('/booking/api/sync-venue/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    name: nama,
+                    location: alamat.split(',')[0].trim(), // Use first part as location
+                    address: alamat,
+                    image_url: thumbnailUrl
+                })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                // Redirect to booking page
+                window.location.href = `/booking/venue/${result.venue_id}/`;
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error syncing venue:', error);
+            alert('Gagal mengakses halaman booking');
+        }
+    }
+    function showCreateModal() {
+        loadAndShowModal("{% url 'home:get_lapangan_modal_add' %}");
     }
 </script>
 
@@ -237,13 +287,7 @@
         border-radius: 20px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-    .btn-primary {
-        background-color: #1a29b6; /* Figma green */
-        border: none;
-        font-weight: bold;
-        border-radius: 10px;
-        padding: 12px 25px;
-    }
+    
     .search-box-title {
         font-size: 1.5rem;
         font-weight: 700;
@@ -251,13 +295,6 @@
         margin-bottom: 1rem;
     }
 
-    .btn-secondary {
-        background-color: #6c757d; /* Bootstrap secondary color */
-        border: none;
-        font-weight: bold;
-        border-radius: 10px;
-        padding: 12px 25px;
-    }
     .search-box .form-control,
     .search-box .form-select {
         border-radius: 10px;
@@ -283,6 +320,24 @@
         background-color: #0056b3; /* Darker blue on hover */
     }
     /* ----- End Figma Design Styles ----- */
+    .courts-section {
+        padding: 60px 0;
+        background-color: #f8f9fa; /* Warna latar default abu-abu muda */
+    }
+
+    /* Ini akan membuat section "All Courts" tetap putih */
+    .courts-section.bg-white {
+        background-color: #ffffff;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #0d2c3e; /* Warna dark teal dari hero section */
+        margin-bottom: 25px;
+        text-align: center;
+    }
+   
     
     .courts-carousel {
         display: flex;
@@ -311,7 +366,7 @@
     }
 
     .court-card {
-        min-width: 300px;
+        width: 300px;
         flex-shrink: 0;
         border: 1px solid #ddd;
         border-radius: 8px;
@@ -389,3 +444,6 @@
 {% endblock %}
 
 
+
+
+    
