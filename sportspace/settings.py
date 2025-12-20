@@ -40,6 +40,13 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://sean-marcello-sportspace.pbp.cs.ui.ac.id",
+    "http://localhost",
+    "http://127.0.0.1",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://localhost:[0-9]+$",
+    r"^http://127\.0\.0\.1:[0-9]+$",
 ]
 
 # Application definition
