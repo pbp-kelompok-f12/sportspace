@@ -254,15 +254,6 @@ def edit_profile_flutter(request):
         "message": "Method not allowed"
     }, status=405)
 
-# FRIEND
-
-import json
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt # <--- WAJIB IMPORT
-from django.contrib.auth.models import User
-from .models import FriendRequest # Pastikan import model sesuai
-
 @csrf_exempt # <--- TAMBAHKAN INI (Mengatasi error <!DOCTYPE HTML...)
 @login_required
 def send_friend_request(request):
