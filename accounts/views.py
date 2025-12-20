@@ -507,7 +507,7 @@ def get_chat_history(request, username):
 
     return JsonResponse({"success": True, "messages": data})
 
-@login_required
+@csrf_exempt
 def send_chat_message(request):
 
     if request.method != "POST":
