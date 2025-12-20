@@ -56,11 +56,18 @@ def login_flutter(request):
     if user is not None:
         if user.is_active:
             auth_login(request, user)
+            role = user.profile.role
+            try:
+                role = user.profile.role
+            except:
+                role = 'customer'
+
             # Login status successful.
             return JsonResponse({
                 "username": user.username,
                 "status": True,
-                "message": "Login successful!"
+                "message": "Login successful!",
+                "role" : role,
                 # Add other data if you want to send data to Flutter.
             }, status=200)
         else:
