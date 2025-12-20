@@ -62,24 +62,21 @@ def login_flutter(request):
             except:
                 role = 'customer'
 
-            # Login status successful.
             return JsonResponse({
                 "username": user.username,
                 "status": True,
-                "message": "Login successful!",
+                "message": "Login berhasil!",
                 "role" : role,
-                # Add other data if you want to send data to Flutter.
             }, status=200)
         else:
             return JsonResponse({
                 "status": False,
                 "message": "Login failed, account is disabled."
             }, status=401)
-
     else:
         return JsonResponse({
             "status": False,
-            "message": "Login failed, please check your username or password."
+            "message": "Username atau password salah."
         }, status=401)
 
 @csrf_exempt
@@ -95,14 +92,14 @@ def register_flutter(request):
         if password1 != password2:
             return JsonResponse({
                 "status": False,
-                "message": "Passwords do not match."
+                "message": "Password tidak sesuai."
             }, status=400)
         
         # Check if the username is already taken
         if User.objects.filter(username=username).exists():
             return JsonResponse({
                 "status": False,
-                "message": "Username already exists."
+                "message": "Username sudah digunakan."
             }, status=400)
         
         # Create the new user
@@ -116,13 +113,13 @@ def register_flutter(request):
         return JsonResponse({
             "username": user.username,
             "status": 'success',
-            "message": "User created successfully!"
+            "message": "Registrasi berhasil!",
         }, status=200)
     
     else:
         return JsonResponse({
             "status": False,
-            "message": "Invalid request method."
+            "message": "Metode request tidak valid."
         }, status=400)
 
 @csrf_exempt
