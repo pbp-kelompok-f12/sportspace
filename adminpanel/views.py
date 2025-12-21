@@ -64,7 +64,6 @@ def get_lapangan_json(request):
     data = list(LapanganPadel.objects.values())
     return JsonResponse({'lapangan': data})
 
-
 @csrf_exempt
 @login_required(login_url='/accounts/login/')
 def create_lapangan_ajax(request):
@@ -78,7 +77,6 @@ def create_lapangan_ajax(request):
             return JsonResponse({'success': False, 'errors': form.errors}, status=400)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
 
 @csrf_exempt
 @login_required(login_url='/accounts/login/')
@@ -95,7 +93,6 @@ def update_lapangan_ajax(request, id):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-
 @csrf_exempt
 @login_required(login_url='/accounts/login/')
 def delete_lapangan_ajax(request, id):
@@ -106,7 +103,6 @@ def delete_lapangan_ajax(request, id):
             return JsonResponse({'success': True})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
 
 # ================= USER MANAGEMENT =================
 
@@ -201,7 +197,6 @@ def update_user_ajax(request, id):
         return JsonResponse({'status': 'error', 'message': 'Pengguna tidak ditemukan'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
 
 @csrf_exempt
 @login_required(login_url='/accounts/login/')
