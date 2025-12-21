@@ -7,36 +7,55 @@ class Match(models.Model):
         ('1v1', '1 vs 1'),
         ('2v2', '2 vs 2'),
     ]
-    
-    mode = models.CharField(max_length=10, choices=MODE_CHOICES)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    players = models.ManyToManyField(User, related_name='matches')
+
+    mode = models.CharField(max_length=3, choices=MODE_CHOICES)
+    created_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='matches_created'
+    )
+    players = models.ManyToManyField(
+        User, related_name='matches_joined', blank=True
+    )
     temp_teammate = models.CharField(max_length=100, blank=True, null=True)
-    is_full = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def player_count(self):
-        """Menghitung jumlah pemain saat ini"""
-        return self.players.count() + (1 if self.mode == '2v2' and self.temp_teammate else 0)
+    @property
+    def mode_display(self):
+        return self.get_mode_display()
 
+    @property
+    def player_count(self):
+        count = self.players.count()
+        if self.mode == '2v2' and self.temp_teammate:
+            count += 1
+        return count
+
+    @property
     def max_players(self):
-        """Mengembalikan maksimal pemain berdasarkan mode"""
         if self.mode == '1v1':
             return 2
-        elif self.mode == '2v2':
+        if self.mode == '2v2':
             return 4
-        else:
-            return 0  
+        return 0
+
+    @property
+    def is_full(self):
+        return self.player_count >= self.max_players
 
     def can_join(self):
-        """Cek apakah match masih bisa diikuti"""
         if self.is_full:
             return False
-        return self.player_count() < self.max_players()
+
+        if self.mode == '1v1':
+            return self.players.count() < 2
+
+        if self.mode == '2v2':
+            return self.players.count() < 2
+
+        return False
 
     def __str__(self):
         return f"{self.mode} oleh {self.created_by.username}"
 
     class Meta:
-        verbose_name_plural = "Matches"
         ordering = ['-created_at']
+        verbose_name_plural = "Matches"
