@@ -10,6 +10,7 @@ urlpatterns = [
     path('2vs2/', views.two_vs_two, name='two_vs_two'),
     path('match/<int:match_id>/', views.match_detail, name='match_detail'),
     path('join/<int:match_id>/', views.join_match, name='join_match'),
+    path('delete/<int:match_id>/', views.delete_match, name='delete_match'),
 
     # JSON API (Flutter)
     path('json/', views.list_match_json, name='list_match_json'),
