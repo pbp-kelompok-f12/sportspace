@@ -21,7 +21,7 @@ urlpatterns = [
     path('users/add/', views.add_user_ajax, name='add_user_ajax'),
     path('users/update/<int:id>/', views.update_user_ajax, name='update_user_ajax'),
     path('users/delete/<int:id>/', views.delete_user_ajax, name='delete_user_ajax'),
-    
+    path('users/status/<int:id>/', views.toggle_user_status_ajax, name='toggle_user_status_ajax'),
     # Booking
     path('bookings/', views.dashboard_booking_ajax, name='dashboard_booking'),
     path('bookings/data/', views.get_booking_json, name='get_booking_json'),

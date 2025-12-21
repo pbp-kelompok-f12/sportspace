@@ -247,3 +247,115 @@ def delete_booking_ajax(request, id):
             return JsonResponse({'success': True})
         except Booking.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Booking not found'}, status=404)
+        
+
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.views.decorators.http import require_http_methods
+
+@login_required(login_url='/accounts/login/')
+@user_passes_test(is_admin)
+def get_users_json(request):
+    """
+    SERVER-SIDE PAGINATION & SEARCH
+    Hanya menampilkan role 'customer' dan 'venue_owner'.
+    """
+    search_query = request.GET.get('search', '')
+    role_filter = request.GET.get('role', 'all')
+    page_number = request.GET.get('page', 1)
+    limit = 20  # Data per halaman
+
+    # --- LOGIKA FILTER UTAMA (Q Object) ---
+    # Select related profile untuk performa, filter hanya customer/venue_owner
+    users = User.objects.select_related('profile').filter(
+        Q(profile__role='customer') | Q(profile__role='venue_owner')
+    ).order_by('-date_joined')
+
+    # 1. Filtering Search (Username/Email)
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) | 
+            Q(email__icontains=search_query)
+        )
+
+    # 2. Filtering Role Spesifik (jika user memilih dropdown)
+    if role_filter != 'all':
+        users = users.filter(profile__role=role_filter)
+
+    # 3. Pagination
+    paginator = Paginator(users, limit)
+    page_obj = paginator.get_page(page_number)
+
+    data = []
+    for user in page_obj:
+        # Handle jika user tidak punya profile (antisipasi error)
+        profile = getattr(user, 'profile', None)
+        data.append({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'role': profile.role if profile else 'unknown',
+            'phone': profile.phone if profile else '-',
+            'address': profile.address if profile else '-',
+            'is_active': user.is_active,
+            'date_joined': user.date_joined.strftime("%Y-%m-%d"),
+        })
+
+    return JsonResponse({
+        'users': data,
+        'total_pages': paginator.num_pages,
+        'current_page': page_obj.number,
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+    })
+
+@csrf_exempt
+@login_required(login_url='/accounts/login/')
+@user_passes_test(is_admin)
+@require_http_methods(["POST"])
+def add_user_ajax(request):
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        email = data.get('email', '')
+        password = data.get('password')  # Ambil password dari input
+        role = data.get('role', 'customer')
+
+        # Validasi sederhana
+        if not username or not password:
+            return JsonResponse({'status': 'error', 'message': 'Username dan Password wajib diisi'}, status=400)
+
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'status': 'error', 'message': 'Username sudah digunakan'}, status=400)
+
+        # Buat user dengan password manual
+        user = User.objects.create_user(username=username, email=email, password=password)
+        
+        # Update Profile
+        profile = user.profile
+        profile.role = role
+        profile.phone = data.get('phone', '')
+        profile.address = data.get('address', '')
+        profile.save()
+
+        return JsonResponse({'status': 'success', 'message': 'Pengguna berhasil ditambahkan'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+@csrf_exempt
+@login_required(login_url='/accounts/login/')
+@user_passes_test(is_admin)
+@require_http_methods(["POST"])
+def toggle_user_status_ajax(request, id):
+    """
+    SOFT DELETE: Mengganti status Active <-> Inactive
+    """
+    try:
+        user = User.objects.get(pk=id)
+        # Toggle status
+        user.is_active = not user.is_active
+        user.save()
+        
+        status_msg = "diaktifkan" if user.is_active else "dinonaktifkan"
+        return JsonResponse({'status': 'success', 'message': f'User berhasil {status_msg}'})
+    except User.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'User tidak ditemukan'}, status=404)
