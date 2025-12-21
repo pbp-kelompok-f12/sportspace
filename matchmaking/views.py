@@ -132,34 +132,30 @@ def delete_match_flutter(request, match_id):
 # =======================
 # WEB VIEWS (DUMMY)
 # =======================
-
 @login_required
 def matchmaking_home(request):
     matches = Match.objects.all()
-    return render(request, 'matchmaking.html', {'matches': matches})
+    # Ubah 'matchmaking.html' menjadi 'matchmaking/matchmaking.html'
+    return render(request, 'matchmaking/matchmaking.html', {'matches': matches})
 
 
 @login_required
 def one_vs_one(request):
-    return render(request, 'one_vs_one.html')
+    # Ubah path di sini juga
+    return render(request, 'matchmaking/one_vs_one.html')
 
 
 @login_required
 def two_vs_two(request):
-    return render(request, 'two_vs_two.html')
+    # Ubah path di sini juga
+    return render(request, 'matchmaking/two_vs_two.html')
 
 
 @login_required
 def match_detail(request, match_id):
     match = get_object_or_404(Match, pk=match_id)
-    return render(request, 'match_detail.html', {'match': match})
-
-
-@login_required
-def join_match(request, match_id):
-    return redirect('matchmaking:home')
-
-
+    # Ubah path di sini juga
+    return render(request, 'matchmaking/match_detail.html', {'match': match})
 @login_required
 def delete_match(request, match_id):
     return redirect('matchmaking:home')
