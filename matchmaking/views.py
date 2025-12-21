@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -50,25 +51,6 @@ def create_1v1_flutter(request):
 
     return JsonResponse({'status': 'success'})
 
-
-from django.contrib import messages
-@login_required
-def join_match(request, match_id):
-    if request.method == 'POST':
-        match = get_object_or_404(Match, pk=match_id)
-        
-        # Validasi sederhana (Logic sama seperti flutter tapi return redirect)
-        if match.players.filter(pk=request.user.pk).exists():
-            messages.warning(request, "Anda sudah terdaftar di match ini.")
-        elif not match.can_join:
-            messages.error(request, "Match sudah penuh atau tidak bisa dimasuki.")
-        elif match.created_by == request.user:
-            messages.error(request, "Anda adalah pembuat match ini.")
-        else:
-            match.players.add(request.user)
-            messages.success(request, "Berhasil bergabung ke match!")
-            
-    return redirect('matchmaking:home')
 
 @login_required
 @csrf_exempt
@@ -151,30 +133,64 @@ def delete_match_flutter(request, match_id):
 # =======================
 # WEB VIEWS (DUMMY)
 # =======================
+
 @login_required
 def matchmaking_home(request):
     matches = Match.objects.all()
-    # Ubah 'matchmaking.html' menjadi 'matchmaking/matchmaking.html'
     return render(request, 'matchmaking/matchmaking.html', {'matches': matches})
 
 
 @login_required
 def one_vs_one(request):
-    # Ubah path di sini juga
+    if request.method == 'POST':
+        if Match.objects.filter(players=request.user).exists():
+            messages.error(request, "Anda sudah terdaftar di match lain.")
+            return redirect('matchmaking:home')
+
+        match = Match.objects.create(
+            mode='1v1',
+            created_by=request.user
+        )
+        match.players.add(request.user)
+
+        messages.success(request, "Match 1v1 berhasil dibuat!")
+        return redirect('matchmaking:home')
+
     return render(request, 'matchmaking/one_vs_one.html')
 
 
 @login_required
 def two_vs_two(request):
-    # Ubah path di sini juga
+    if request.method == 'POST':
+        teammate = request.POST.get('teammate')
+
+        if not teammate:
+            messages.error(request, "Nama teman wajib diisi.")
+            return redirect('matchmaking:two_vs_two')
+
+        if Match.objects.filter(players=request.user).exists():
+            messages.error(request, "Anda sudah terdaftar di match lain.")
+            return redirect('matchmaking:home')
+
+        match = Match.objects.create(
+            mode='2v2',
+            created_by=request.user,
+            temp_teammate=teammate
+        )
+        match.players.add(request.user)
+
+        messages.success(request, "Match 2v2 berhasil dibuat!")
+        return redirect('matchmaking:home')
+
     return render(request, 'matchmaking/two_vs_two.html')
 
 
 @login_required
 def match_detail(request, match_id):
     match = get_object_or_404(Match, pk=match_id)
-    # Ubah path di sini juga
     return render(request, 'matchmaking/match_detail.html', {'match': match})
+
+
 @login_required
 def delete_match(request, match_id):
     return redirect('matchmaking:home')
