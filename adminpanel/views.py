@@ -257,16 +257,15 @@ from django.views.decorators.http import require_http_methods
 @user_passes_test(is_admin)
 def get_users_json(request):
     """
-    SERVER-SIDE PAGINATION & SEARCH
-    Hanya menampilkan role 'customer' dan 'venue_owner'.
+    SERVER-SIDE PAGINATION, SEARCH, ROLE & STATUS FILTER
     """
     search_query = request.GET.get('search', '')
     role_filter = request.GET.get('role', 'all')
+    status_filter = request.GET.get('status', 'all') # <--- AMBIL PARAMETER STATUS
     page_number = request.GET.get('page', 1)
-    limit = 20  # Data per halaman
+    limit = 20
 
-    # --- LOGIKA FILTER UTAMA (Q Object) ---
-    # Select related profile untuk performa, filter hanya customer/venue_owner
+    # Query Dasar: Ambil Customer & Venue Owner
     users = User.objects.select_related('profile').filter(
         Q(profile__role='customer') | Q(profile__role='venue_owner')
     ).order_by('-date_joined')
@@ -278,17 +277,22 @@ def get_users_json(request):
             Q(email__icontains=search_query)
         )
 
-    # 2. Filtering Role Spesifik (jika user memilih dropdown)
+    # 2. Filtering Role
     if role_filter != 'all':
         users = users.filter(profile__role=role_filter)
 
-    # 3. Pagination
+    # 3. Filtering Status (LOGIC BARU)
+    if status_filter == 'active':
+        users = users.filter(is_active=True)
+    elif status_filter == 'inactive':
+        users = users.filter(is_active=False)
+
+    # 4. Pagination
     paginator = Paginator(users, limit)
     page_obj = paginator.get_page(page_number)
 
     data = []
     for user in page_obj:
-        # Handle jika user tidak punya profile (antisipasi error)
         profile = getattr(user, 'profile', None)
         data.append({
             'id': user.id,
@@ -297,7 +301,7 @@ def get_users_json(request):
             'role': profile.role if profile else 'unknown',
             'phone': profile.phone if profile else '-',
             'address': profile.address if profile else '-',
-            'is_active': user.is_active,
+            'is_active': user.is_active, # Penting untuk Flutter
             'date_joined': user.date_joined.strftime("%Y-%m-%d"),
         })
 
