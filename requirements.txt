@@ -8,3 +8,4 @@ python-dotenv
 django-widget-tweaks
 pytz
 django-cors-headers
+djangorestframework

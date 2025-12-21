@@ -2,98 +2,86 @@
 {% load static %}
 {% block content %}
 <div class="min-h-screen flex items-center justify-center py-10 px-6 bg-transparent">
- 
-  
+
+  <!-- Kotak utama -->
   <div class="w-full max-w-6xl bg-white/95 backdrop-blur-sm shadow-lg rounded-3xl p-10 border border-gray-200">
 
+    <!-- Judul halaman -->
     <div class="text-center mb-10">
       <h1 class="text-3xl font-bold text-[#0C2D57]">Kelola Pengguna</h1>
-      <p class="text-gray-600 mt-2">Lihat, tambah, dan kelola status pengguna.</p>
+      <p class="text-gray-600 mt-2">Lihat, tambah, ubah, dan hapus pengguna sistem.</p>
     </div>
 
+    <!-- Filter + Sort + Tombol tambah -->
     <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
       <div class="flex items-center gap-3 flex-wrap justify-center sm:justify-start">
-        
+        <!-- Filter Role -->
         <div class="flex items-center gap-2">
-            <input type="text" id="searchInput" placeholder="Cari user..." 
-                class="border border-gray-300 rounded-md px-3 py-1 text-black bg-white focus:outline-none focus:ring focus:ring-[#0C2D57]/30 w-40 sm:w-auto">
-        </div>
-
-        <div class="flex items-center gap-2">
-          <label for="roleFilter" class="font-medium text-[#0C2D57] hidden sm:block">Role:</label>
+          <label for="roleFilter" class="font-medium text-[#0C2D57]">Filter Role:</label>
           <select id="roleFilter"
-            class="border border-gray-300 rounded-md px-3 py-1 text-black bg-white focus:outline-none focus:ring focus:ring-[#0C2D57]/30">
+            class="border border-gray-300 rounded-md px-3 py-1 text-black bg-white 
+                   focus:outline-none focus:ring focus:ring-[#0C2D57]/30">
             <option value="all">Semua</option>
             <option value="customer">Customer</option>
-            <option value="venue_owner">Owner</option>
+            <option value="venue_owner">Venue Owner</option>
+            <option value="admin">Admin</option>
           </select>
         </div>
 
+        <!-- Sort Username -->
         <div class="flex items-center gap-2">
+          <label for="sortOrder" class="font-medium text-[#0C2D57]">Urutkan Username:</label>
           <select id="sortOrder"
-            class="border border-gray-300 rounded-md px-3 py-1 text-black bg-white focus:outline-none focus:ring focus:ring-[#0C2D57]/30">
+            class="border border-gray-300 rounded-md px-3 py-1 text-black bg-white
+                   focus:outline-none focus:ring focus:ring-[#0C2D57]/30">
             <option value="asc">A → Z</option>
             <option value="desc">Z → A</option>
           </select>
         </div>
       </div>
 
+      <!-- Tombol tambah -->
       <button id="btnAddUser" class="bg-[#0C2D57] text-white px-5 py-2 rounded hover:bg-[#0A2347]">
         + Tambah Pengguna
       </button>
     </div>
 
-    <div class="overflow-x-auto bg-white rounded-xl shadow-md min-h-[300px]">
+    <!-- Count -->
+    <p class="text-gray-600 mb-4 text-sm text-center sm:text-left">
+      Total pengguna: <span id="userCount" class="font-semibold text-[#0C2D57]">0</span>
+    </p>
+
+    <!-- Tabel data pengguna -->
+    <div class="overflow-x-auto bg-white rounded-xl shadow-md">
       <table class="w-full border-collapse border border-gray-300 text-sm" id="userTable">
         <thead class="bg-gray-100 text-[#0C2D57]">
           <tr>
             <th class="border px-4 py-2 text-left">Username</th>
             <th class="border px-4 py-2 text-left">Email</th>
             <th class="border px-4 py-2 text-center">Role</th>
-            <th class="border px-4 py-2 text-center">Status</th>
             <th class="border px-4 py-2 text-left">Phone</th>
             <th class="border px-4 py-2 text-left">Address</th>
             <th class="border px-4 py-2 text-center">Aksi</th>
           </tr>
         </thead>
         <tbody id="userBody" class="text-black">
-          </tbody>
+          <!-- data diisi dengan JS -->
+        </tbody>
       </table>
     </div>
-
-    <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-gray-100">
-        <p class="text-gray-600 text-sm mb-4 sm:mb-0">
-            Total <span id="totalData" class="font-bold text-[#0C2D57]">0</span> data 
-            (Hal <span id="currentPageDisplay">1</span> dari <span id="totalPagesDisplay">1</span>)
-        </p>
-        
-        <div class="flex items-center gap-4">
-            <div id="paginationNumbers" class="flex gap-1"></div>
-
-            <div class="flex items-center gap-1">
-                <input type="number" id="jumpPageInput" min="1" placeholder="#" 
-                    class="border border-gray-300 rounded px-2 py-1 w-12 text-center text-sm text-black focus:outline-none focus:ring focus:ring-[#0C2D57]/30">
-                <button id="btnJumpPage" class="bg-gray-200 text-[#0C2D57] px-2 py-1 rounded text-sm hover:bg-gray-300">Go</button>
-            </div>
-        </div>
-    </div>
-
   </div>
 </div>
 
+<!-- Modal Form -->
 <div id="modalUserForm" class="fixed inset-0 bg-black/40 hidden justify-center items-center z-50">
   <div class="bg-white rounded-xl p-6 w-[420px] shadow-md">
     <h2 id="modalTitle" class="text-lg font-semibold text-[#0C2D57] mb-4">Tambah Pengguna</h2>
     <form id="userForm" class="space-y-3">
-      
-      <div>
-        <label class="text-sm font-medium text-[#0C2D57]">Username <span class="text-red-500">*</span></label>
-        <input type="text" id="username" placeholder="Username" required class="border rounded w-full p-2 mt-1 text-black">
-      </div>
+      <input type="hidden" id="userId">
 
       <div>
-        <label class="text-sm font-medium text-[#0C2D57]">Password <span class="text-red-500">*</span></label>
-        <input type="password" id="password" placeholder="Masukkan password" required class="border rounded w-full p-2 mt-1 text-black">
+        <label class="text-sm font-medium text-[#0C2D57]">Username</label>
+        <input type="text" id="username" placeholder="Username" class="border rounded w-full p-2 mt-1 text-black">
       </div>
 
       <div>
@@ -101,19 +89,18 @@
         <input type="email" id="email" placeholder="Email pengguna" class="border rounded w-full p-2 mt-1 text-black">
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-            <label class="text-sm font-medium text-[#0C2D57]">Role</label>
-            <select id="role" class="border rounded w-full p-2 mt-1 text-black bg-white cursor-pointer">
-                <option value="customer">Customer</option>
-                <option value="venue_owner">Venue Owner</option>
-                <option value="admin">Admin</option>
-            </select>
-        </div>
-        <div>
-            <label class="text-sm font-medium text-[#0C2D57]">Telepon</label>
-            <input type="text" id="phone" placeholder="Nomor telepon" class="border rounded w-full p-2 mt-1 text-black">
-        </div>
+      <div>
+        <label class="text-sm font-medium text-[#0C2D57]">Role</label>
+        <select id="role" class="border rounded w-full p-2 mt-1 text-black bg-white">
+          <option value="customer">Customer</option>
+          <option value="venue_owner">Venue Owner</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-[#0C2D57]">Nomor Telepon</label>
+        <input type="text" id="phone" placeholder="Nomor telepon" class="border rounded w-full p-2 mt-1 text-black">
       </div>
 
       <div>
@@ -122,7 +109,7 @@
       </div>
 
       <div class="flex justify-end gap-2 mt-3">
-        <button type="button" id="cancelBtn" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-black">Batal</button>
+        <button type="button" id="cancelBtn" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Batal</button>
         <button type="submit" class="px-3 py-1 bg-[#0C2D57] text-white rounded hover:bg-[#0A2347]">Simpan</button>
       </div>
     </form>
@@ -138,239 +125,123 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // Elements
   const userBody = document.getElementById('userBody');
-  const paginationNumbers = document.getElementById('paginationNumbers');
-  const totalDataSpan = document.getElementById('totalData');
-  const currentPageSpan = document.getElementById('currentPageDisplay');
-  const totalPagesSpan = document.getElementById('totalPagesDisplay');
-  
-  // Controls
-  const searchInput = document.getElementById('searchInput');
-  const roleFilter = document.getElementById('roleFilter');
-  const sortOrder = document.getElementById('sortOrder');
-  const jumpInput = document.getElementById('jumpPageInput');
-  const btnJump = document.getElementById('btnJumpPage');
-
-  // Modal
+  const userCount = document.getElementById('userCount');
   const modal = document.getElementById('modalUserForm');
   const form = document.getElementById('userForm');
+  const title = document.getElementById('modalTitle');
   const btnAdd = document.getElementById('btnAddUser');
   const cancelBtn = document.getElementById('cancelBtn');
-  
+  const idField = document.getElementById('userId');
+  const roleFilter = document.getElementById('roleFilter');
+  const sortOrder = document.getElementById('sortOrder');
   const csrfToken = '{{ csrf_token }}';
 
-  // State
-  let currentPage = 1;
-  let totalPages = 1;
-  let searchDebounce = null;
-
-  // --- 1. FETCH DATA ---
-  function fetchUsers(page = 1) {
-    const role = roleFilter.value;
-    const search = searchInput.value;
-    
-    const url = `/dashboard-admin/users/data/?page=${page}&role=${role}&search=${encodeURIComponent(search)}`;
-
-    userBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">Memuat data...</td></tr>';
+  function fetchUsers() {
+    const selectedRole = roleFilter.value;
+    const selectedSort = sortOrder.value;
+    const url = selectedRole === 'all'
+      ? '/dashboard-admin/users/data/'
+      : `/dashboard-admin/users/data/?role=${selectedRole}`;
 
     fetch(url)
       .then(res => res.json())
       .then(data => {
         let users = data.users;
-        
-        currentPage = data.current_page;
-        totalPages = data.total_pages;
-        
-        const itemCount = ((currentPage - 1) * 20) + users.length; 
-        totalDataSpan.textContent = itemCount > 0 ? itemCount : 0; 
-        currentPageSpan.textContent = currentPage;
-        totalPagesSpan.textContent = totalPages;
 
-        const order = sortOrder.value;
+        // Sorting berdasarkan username
         users.sort((a, b) => {
           const nameA = a.username.toLowerCase();
           const nameB = b.username.toLowerCase();
-          return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+          if (selectedSort === 'asc') return nameA.localeCompare(nameB);
+          return nameB.localeCompare(nameA);
         });
 
-        renderTable(users);
-        renderPaginationNumbers();
-      })
-      .catch(err => {
-        console.error(err);
-        userBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
+        // Render tabel
+        userBody.innerHTML = '';
+        userCount.textContent = users.length;
+        users.forEach(u => {
+          const row = `
+            <tr class="hover:bg-gray-50 text-black">
+              <td class="border px-4 py-2">${u.username}</td>
+              <td class="border px-4 py-2">${u.email || '-'}</td>
+              <td class="border px-4 py-2 text-center capitalize">${u.role}</td>
+              <td class="border px-4 py-2">${u.phone || '-'}</td>
+              <td class="border px-4 py-2">${u.address || '-'}</td>
+              <td class="border px-4 py-2 text-center">
+                <button onclick="editUser(${u.id})" class="text-blue-600 hover:underline">Edit</button> |
+                <button onclick="deleteUser(${u.id})" class="text-red-600 hover:underline">Hapus</button>
+              </td>
+            </tr>`;
+          userBody.insertAdjacentHTML('beforeend', row);
+        });
       });
   }
 
-  // --- 2. RENDER TABLE ---
-  function renderTable(users) {
-    userBody.innerHTML = '';
-    
-    if (users.length === 0) {
-      userBody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-500">Data tidak ditemukan.</td></tr>';
-      return;
-    }
+  roleFilter.addEventListener('change', fetchUsers);
+  sortOrder.addEventListener('change', fetchUsers);
 
-    users.forEach(u => {
-      // Role Colors
-      let roleClass = 'bg-blue-50 text-blue-700 border-blue-200';
-      if(u.role === 'customer') roleClass = 'bg-green-50 text-green-700 border-green-200';
-      if(u.role === 'admin') roleClass = 'bg-red-50 text-red-700 border-red-200';
-
-      // Status Badge
-      const statusBadge = u.is_active 
-        ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
-             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aktif
-           </span>`
-        : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">
-             <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Nonaktif
-           </span>`;
-
-      const toggleText = u.is_active ? 'Nonaktifkan' : 'Aktifkan';
-      const toggleColor = u.is_active ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800';
-
-      const row = `
-        <tr class="hover:bg-gray-50 text-black border-b border-gray-100 ${!u.is_active ? 'opacity-60 bg-gray-50' : ''}">
-          <td class="border px-4 py-2 font-medium">${u.username}</td>
-          <td class="border px-4 py-2">${u.email || '-'}</td>
-          <td class="border px-4 py-2 text-center capitalize">
-             <span class="px-2 py-1 rounded-md text-xs font-bold uppercase border ${roleClass}">${u.role.replace('_', ' ')}</span>
-          </td>
-          <td class="border px-4 py-2 text-center">${statusBadge}</td>
-          <td class="border px-4 py-2 text-sm">${u.phone || '-'}</td>
-          <td class="border px-4 py-2 text-sm truncate max-w-[150px]" title="${u.address || ''}">${u.address || '-'}</td>
-          <td class="border px-4 py-2 text-center">
-            <button onclick="toggleStatus(${u.id})" class="${toggleColor} hover:underline font-medium">${toggleText}</button>
-          </td>
-        </tr>`;
-      userBody.insertAdjacentHTML('beforeend', row);
-    });
-  }
-
-  // --- 3. PAGINATION RENDERER ---
-  function renderPaginationNumbers() {
-    paginationNumbers.innerHTML = '';
-
-    const createBtn = (page, isActive, text) => {
-        const btn = document.createElement('button');
-        btn.className = `px-3 py-1 rounded border text-sm font-medium transition ${
-            isActive 
-            ? 'bg-[#0C2D57] text-white border-[#0C2D57]' 
-            : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'
-        }`;
-        btn.textContent = text || page;
-        if (!isActive) btn.onclick = () => fetchUsers(page);
-        return btn;
-    };
-
-    const maxVisible = 5;
-    let pages = [];
-
-    if (totalPages <= maxVisible + 2) {
-        for(let i=1; i<=totalPages; i++) pages.push(i);
-    } else {
-        if (currentPage <= 4) {
-            pages = [1, 2, 3, 4, 5, '...', totalPages];
-        } else if (currentPage >= totalPages - 3) {
-            pages = [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-        } else {
-            pages = [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
-        }
-    }
-
-    pages.forEach(p => {
-        if (p === '...') {
-            const span = document.createElement('span');
-            span.className = 'px-2 text-gray-400 self-center';
-            span.textContent = '...';
-            paginationNumbers.appendChild(span);
-        } else {
-            paginationNumbers.appendChild(createBtn(p, p === currentPage));
-        }
-    });
-  }
-
-  // --- 4. EVENT HANDLERS ---
-
-  // Jump Page
-  const handleJump = () => {
-      const p = parseInt(jumpInput.value);
-      if(p >= 1 && p <= totalPages) {
-          fetchUsers(p);
-          jumpInput.value = '';
-      } else {
-          alert(`Masukkan halaman antara 1 - ${totalPages}`);
-      }
-  };
-  btnJump.onclick = handleJump;
-  jumpInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleJump(); });
-
-  // Filter & Search
-  roleFilter.onchange = () => fetchUsers(1);
-  sortOrder.onchange = () => fetchUsers(currentPage);
-  searchInput.oninput = () => {
-      clearTimeout(searchDebounce);
-      searchDebounce = setTimeout(() => fetchUsers(1), 600);
-  };
-
-  // Modal Handling
   btnAdd.onclick = () => {
     form.reset();
+    idField.value = '';
+    title.textContent = 'Tambah Pengguna';
     modal.classList.remove('hidden');
     modal.classList.add('flex');
   };
 
-  cancelBtn.onclick = () => {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  };
+  cancelBtn.onclick = () => modal.classList.add('hidden');
 
-  // Action: Toggle Status
-  window.toggleStatus = (id) => {
-    if (!confirm('Ubah status aktif/nonaktif pengguna ini?')) return;
-    
-    fetch(`/dashboard-admin/users/status/${id}/`, {
-      method: 'POST',
-      headers: { 'X-CSRFToken': csrfToken },
-    })
+  window.editUser = (id) => {
+    fetch('/dashboard-admin/users/data/')
       .then(res => res.json())
-      .then(res => {
-        if(res.status === 'success') {
-            fetchUsers(currentPage);
-        } else {
-            alert(res.message);
-        }
+      .then(data => {
+        const user = data.users.find(u => u.id === id);
+        idField.value = user.id;
+        document.getElementById('username').value = user.username;
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('role').value = user.role || 'customer';
+        document.getElementById('phone').value = user.phone || '';
+        document.getElementById('address').value = user.address || '';
+        title.textContent = 'Edit Pengguna';
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
       });
   };
 
-  // Submit Form (Add User)
+  window.deleteUser = (id) => {
+    if (!confirm('Yakin ingin menghapus pengguna ini?')) return;
+    fetch(`/dashboard-admin/users/delete/${id}/`, {
+      method: 'DELETE',
+      headers: { 'X-CSRFToken': csrfToken },
+    })
+      .then(res => res.json())
+      .then(() => fetchUsers());
+  };
+
   form.onsubmit = e => {
     e.preventDefault();
-    
     const payload = {
       username: document.getElementById('username').value,
       email: document.getElementById('email').value,
-      password: document.getElementById('password').value,
       role: document.getElementById('role').value,
       phone: document.getElementById('phone').value,
       address: document.getElementById('address').value,
     };
 
-    fetch(`/dashboard-admin/users/add/`, {
+    const id = idField.value;
+    const url = id
+      ? `/dashboard-admin/users/update/${id}/`
+      : `/dashboard-admin/users/add/`;
+
+    fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
       body: JSON.stringify(payload)
     })
       .then(res => res.json())
-      .then(res => {
-        if(res.status === 'success') {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            fetchUsers(currentPage);
-        } else {
-            alert(res.message);
-        }
+      .then(() => {
+        modal.classList.add('hidden');
+        fetchUsers();
       });
   };
 
