@@ -130,28 +130,29 @@ def delete_match_flutter(request, match_id):
 
 
 # =======================
-# DUMMY WEB VIEWS
+# WEB VIEWS (DUMMY)
 # =======================
 
 @login_required
 def matchmaking_home(request):
-    return render(request, 'matchmaking/home.html')
+    matches = Match.objects.all()
+    return render(request, 'matchmaking.html', {'matches': matches})
 
 
 @login_required
 def one_vs_one(request):
-    return render(request, 'matchmaking/1v1.html')
+    return render(request, 'one_vs_one.html')
 
 
 @login_required
 def two_vs_two(request):
-    return render(request, 'matchmaking/2v2.html')
+    return render(request, 'two_vs_two.html')
 
 
 @login_required
 def match_detail(request, match_id):
     match = get_object_or_404(Match, pk=match_id)
-    return render(request, 'matchmaking/detail.html', {'match': match})
+    return render(request, 'match_detail.html', {'match': match})
 
 
 @login_required
