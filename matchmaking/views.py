@@ -51,6 +51,25 @@ def create_1v1_flutter(request):
     return JsonResponse({'status': 'success'})
 
 
+from django.contrib import messages
+@login_required
+def join_match(request, match_id):
+    if request.method == 'POST':
+        match = get_object_or_404(Match, pk=match_id)
+        
+        # Validasi sederhana (Logic sama seperti flutter tapi return redirect)
+        if match.players.filter(pk=request.user.pk).exists():
+            messages.warning(request, "Anda sudah terdaftar di match ini.")
+        elif not match.can_join:
+            messages.error(request, "Match sudah penuh atau tidak bisa dimasuki.")
+        elif match.created_by == request.user:
+            messages.error(request, "Anda adalah pembuat match ini.")
+        else:
+            match.players.add(request.user)
+            messages.success(request, "Berhasil bergabung ke match!")
+            
+    return redirect('matchmaking:home')
+
 @login_required
 @csrf_exempt
 def create_2v2_flutter(request):
