@@ -112,31 +112,6 @@ def dashboard_user_admin(request):
     """Halaman kelola akun pengguna"""
     return render(request, 'dashboard_admin_users.html')
 
-@login_required(login_url='/accounts/login/')
-@user_passes_test(is_admin)
-def get_users_json(request):
-    """Ambil seluruh data user dan profil, bisa difilter berdasarkan role"""
-    role_filter = request.GET.get('role', None)
-
-    users = User.objects.all().select_related('profile')
-
-    if role_filter and role_filter != 'all':
-        users = users.filter(profile__role=role_filter)
-
-    data = []
-    for user in users:
-        profile = getattr(user, 'profile', None)
-        data.append({
-            'id': user.id,
-            'username': user.username,
-            'email': profile.email if profile else '',
-            'role': profile.role if profile else 'unknown',
-            'phone': profile.phone if profile else '',
-            'address': profile.address if profile else '',
-        })
-    return JsonResponse({'users': data})
-
-
 @csrf_exempt
 @login_required(login_url='/accounts/login/')
 @user_passes_test(is_admin)
